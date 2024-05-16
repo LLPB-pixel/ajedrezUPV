@@ -70,17 +70,18 @@ def deshacer(board):
     board.pop()
     return 
 
-def valores(pieza)
-    if pieza == chess.PAWN
+def valores(pieza):
+    if pieza == chess.PAWN:
         return 1
-    if pieza == chess.KNIGHT or pieza == chess.BISHOP
+    if pieza == chess.KNIGHT or pieza == chess.BISHOP:
         return 3
-    if pieza == chess.ROOK 
+    if pieza == chess.ROOK:
         return 5
-    if pieza == chess.QUEEN
+    if pieza == chess.QUEEN:
         return 9
-    
-main()
+    else:
+        return 0
 
+main()
 
 
