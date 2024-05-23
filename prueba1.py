@@ -70,27 +70,40 @@ def deshacer(board):
     board.pop()
     return 
 
-def valores(pieza):
-    if pieza == chess.PAWN:
-        return 1
-    if pieza == chess.KNIGHT or pieza == chess.BISHOP:
-        return 3
-    if pieza == chess.ROOK:
-        return 5
-    if pieza == chess.QUEEN:
-        return 9
-    else:
-        return 0
+
+def calculate_material(board, color):
+    material = 0
+    for piece_type in piece_values:
+        material += len(board.pieces(piece_type, color)) * piece_values[piece_type]
+    return material
+
+
+def eval_t(board):
+    
+    piece_values = {
+        chess.PAWN: 1,
+        chess.KNIGHT: 3,
+        chess.BISHOP: 3,
+        chess.ROOK: 5,
+        chess.QUEEN: 9
+    }
+    white_material = calculate_material(board, chess.WHITE)
+    black_material = calculate_material(board, chess.BLACK)
+    ev = white_material - black_material
+    return ev
+
+
+
         
 def evaluate(board):
     if board.white_mated();
-        return 1000
+        return 10000
     if board.black_mated();
-        return -1000
+        return -10000
     if board.is_draw();
         return 0
     else:
-
+        return eval_t(board)
 
 main()
 
