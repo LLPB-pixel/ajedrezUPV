@@ -81,6 +81,16 @@ def valores(pieza):
         return 9
     else:
         return 0
+        
+def evaluate(board):
+    if board.white_mated();
+        return 1000
+    if board.black_mated();
+        return -1000
+    if board.is_draw();
+        return 0
+    else:
+
 
 main()
 
