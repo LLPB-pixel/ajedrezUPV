@@ -91,19 +91,24 @@ def eval_t(board):
     black_material = calculate_material(board, chess.BLACK)
     ev = white_material - black_material
     return ev
+def evaluate(board):
+    if board.white_mated():
+        return 10000
 
+    if board.black_mated():
+        return -10000
+    if board.is_draw():
+        return 0
+    else:
+        return eval_t(board) + boardcorrection()
+        
+def boardcorrection():
+    return 0
+    
 
 
         
-def evaluate(board):
-    if board.white_mated();
-        return 10000
-    if board.black_mated();
-        return -10000
-    if board.is_draw();
-        return 0
-    else:
-        return eval_t(board)
+
 
 main()
 
