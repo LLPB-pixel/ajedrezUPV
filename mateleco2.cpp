@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-
+#include <cmath>
 using namespace std;
 
 class TableroAjedrez {
@@ -85,19 +85,104 @@ public:
 
     }
     //he puesto return true para que esta parte compile y poder depurar el código
-    bool isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        
+    bool isSuchRookMoveLegal( int x1, int y1, int x2, int y2){
+        if (x1 == x2 || y1 == y2){
+           if (x1 != x2){
+                int menor;
+                if (x1 > x2){
+                    menor = x2;
+                }
+                else{
+                    menor = x1;
+                }
+                for (int i = 1; i = abs(x1 - x2); i++){
+                    if (tablero[y1][menor + i] != '.'){
+                        return false;
+                    }
+                }
+            }
+            else if(y1 != y2){
+            int menor;
+                if (y1 > y2){
+                    menor = y2;
+                }
+                else{
+                    menor = y1;
+                }
+                for (int i = 1; i = abs(y1 - y2); i++){
+                    if (tablero[menor + i][x1] != '.'){
+                        return false;
+                    }
+                }
+           }
+        }
+        else{
+            return false;
+        }
         return true;
     }
-    bool isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        return true;
+    bool isSuchKnightMoveLegal(int x1, int y1, int x2, int y2){
+        if((abs(x1 - x2) == 2 && abs(y1-y2)== 1) || (abs(x1 - x2) == 1 && abs(y1-y2)== 2))
+            return true;
+        else{
+            return false;
+        }
     }
-    bool isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        return true;
+    bool isSuchBishopMoveLegal(int x1, int y1, int x2, int y2){
+        if (abs(x1-x2) == abs(y1-y2)){
+            //comprobar que no se ha saltado ninguan pieza.
+            if (x1 > x2){
+               if(y1 > y2){
+                    for(int i = 1; i = abs(x1-x2); i++){
+                        if (tablero[y2+i][x2 +i] != '.'){
+                            return false;
+
+                        }
+                    }
+               }
+               else{
+                    for(int i = 1; i = abs(x1-x2); i++){
+                        if (tablero[y1+i][x2 +i] != '.'){
+                            return false;
+
+                        }
+                    }
+               }
+            }
+            else{
+                if(y1 > y2){
+                for(int i = 1; i = abs(x1-x2); i++){
+                        if (tablero[y2+i][x1 +i] != '.'){
+                            return false;
+
+                        }
+                    }
+               }
+               else{
+                    for(int i = 1; i = abs(x1-x2); i++){
+                        if (tablero[y1+i][x1 +i] != '.'){
+                            return false;
+
+                        }
+                    }
+               }
+
+            }
+        }
+        else{
+            return false;
+        }
+
     }
-    bool isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        return (isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2) ||  isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2));
+    bool isSuchQueenMoveLegal( int x1, int y1, int x2, int y2){
+        if (abs(x1 - x2) == abs(y1-y2)){
+            return isSuchBishopMoveLegal(x1, y1, x2, y2);
+        }
+        else {
+            return isSuchRookMoveLegal(x1, y1, x2, y2);
+        }
     }
+
     bool isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2){
         return true;
     }
@@ -118,6 +203,7 @@ public:
             char pieza = tablero[y1][x1];
             if(pieza != '.'){
                 if(white_turn){
+                    bool color = true;
                     int piez = static_cast<int>(pieza); //casting
                     if (piez < 96){
                         //vease tabla ascii, estamos comprobando que hay una letra mayuscula en la casilla de origen
@@ -127,17 +213,17 @@ public:
                             //comprobamos que no haya una letra mayuscula (pieza blanca) en la casilla de destino
                             switch(pieza){
                                 case 'P':
-                                    return isSuchPawnMoveLegal();
+                                    return isSuchPawnMoveLegal(color, x1, y1, x2, y2);
                                 case 'B':
-                                    return isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'N':
-                                    return isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchKnightMoveLegal(x1, y1, x2, y2);
                                 case 'R':
-                                    return isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchRookMoveLegal(x1, y1, x2, y2);
                                 case 'Q':
-                                    return isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchQueenMoveLegal( x1, y1, x2, y2);
                                 case 'K':
-                                    return isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchKingMoveLegal(color, x1, y1, x2, y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
@@ -151,10 +237,11 @@ public:
                     }
                 }
                 else if(!white_turn){
+                    bool color = false;
                     // turno de las negras
                     int piez = static_cast<int>(pieza); //casting
                     if(piez > 96){
-                        bool color = false;
+
                         //vease tabla ascii, estamos comprobando que hay una letra ninuscula en la casilla de origen
                         char destino1 = tablero[y2][x2];
                         int dest1 = static_cast<int>(destino1);
@@ -162,17 +249,17 @@ public:
                             //comprobamos que no haya una letra minuscula (pieza negra) del mismo color en dicha casilla
                             switch(pieza){
                                 case 'p':
-                                    return isSuchPawnMoveLegal();
+                                    return isSuchPawnMoveLegal(color, x1, y1, x2, y2);
                                 case 'b':
-                                    return isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'n':
-                                    return isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchKnightMoveLegal(x1, y1, x2, y2);
                                 case 'r':
-                                    return isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchRookMoveLegal(x1, y1, x2, y2);
                                 case 'q':
-                                    return isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchQueenMoveLegal( x1, y1, x2, y2);
                                 case 'k':
-                                    return isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2);
+                                    return isSuchKingMoveLegal(color, x1, y1, x2, y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
@@ -215,4 +302,3 @@ int main() {
     tablero.display();
     return 0;
 }
-
