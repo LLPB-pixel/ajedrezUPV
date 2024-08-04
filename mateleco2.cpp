@@ -29,7 +29,7 @@ public:
             {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
             {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'}//negras
         };
-        //el tablero está al revés? si. Pero lo he hecho así por una razón muy específica:
+        //el tablero estÃ¡ al revÃ©s? si. Pero lo he hecho asÃ­ por una razÃ³n muy especÃ­fica:
         // las coordenadas del tablero coincidiran con las coordenadas de la matriz, lo que nos ahorra posibles quebraderos de cabeza.
         // ejemblo, la casilla d3 es la coordenada [3][4], lo que resulta logico y por ende facil de gestionar
 
@@ -84,23 +84,24 @@ public:
         return nxi, nyi, nxf, nyf;
 
     }
-    //he puesto return true para que esta parte compile y poder depurar el código
-    bool isSuchRookMoveLegal(){
+    //he puesto return true para que esta parte compile y poder depurar el cÃ³digo
+    bool isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2){
+        
         return true;
     }
-    bool isSuchKnightMoveLegal(){
+    bool isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2){
         return true;
     }
-    bool isSuchBishopMoveLegal(){
+    bool isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2){
         return true;
     }
-    bool isSuchQueenMoveLegal(){
-        return (isSuchRookMoveLegal() ||  isSuchBishopMoveLegal());
+    bool isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2){
+        return (isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2) ||  isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2));
     }
-    bool isSuchKingMoveLegal(){
+    bool isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2){
         return true;
     }
-    bool isSuchPawnMoveLegal(){
+    bool isSuchPawnMoveLegal(bool color, int x1, int y1, int x2, int y2){
         return true;
     }
 
@@ -110,6 +111,9 @@ public:
 
     //falta terminar la funcion que determina si una jugada es legal
     bool isSuchMoveLegal(string move, int x1, int y1, int x2, int y2){
+    if(x1 == y1 && x2 == y2){
+        return false;
+    }else{
         if ((x1 >= 0 && x1 <= 7) && (y1 >= 0 && y1 <= 7) && (x2 >= 0 && x2 <= 7) && (y2 >= 0 && y2 <= 7)){
             char pieza = tablero[y1][x1];
             if(pieza != '.'){
@@ -125,15 +129,15 @@ public:
                                 case 'P':
                                     return isSuchPawnMoveLegal();
                                 case 'B':
-                                    return isSuchBishopMoveLegal();
+                                    return isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'N':
-                                    return isSuchKnightMoveLegal();
+                                    return isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'R':
-                                    return isSuchRookMoveLegal();
+                                    return isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'Q':
-                                    return isSuchQueenMoveLegal();
+                                    return isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'K':
-                                    return isSuchKingMoveLegal();
+                                    return isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
@@ -150,6 +154,7 @@ public:
                     // turno de las negras
                     int piez = static_cast<int>(pieza); //casting
                     if(piez > 96){
+                        bool color = false;
                         //vease tabla ascii, estamos comprobando que hay una letra ninuscula en la casilla de origen
                         char destino1 = tablero[y2][x2];
                         int dest1 = static_cast<int>(destino1);
@@ -159,15 +164,15 @@ public:
                                 case 'p':
                                     return isSuchPawnMoveLegal();
                                 case 'b':
-                                    return isSuchBishopMoveLegal();
+                                    return isSuchBishopMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'n':
-                                    return isSuchKnightMoveLegal();
+                                    return isSuchKnightMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'r':
-                                    return isSuchRookMoveLegal();
+                                    return isSuchRookMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'q':
-                                    return isSuchQueenMoveLegal();
+                                    return isSuchQueenMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 case 'k':
-                                    return isSuchKingMoveLegal();
+                                    return isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
@@ -189,7 +194,7 @@ public:
         }else{
             return false;
         }
-
+        }
     }
 
     void makeMove(string move, int x1, int y1, int x2, int y2){
