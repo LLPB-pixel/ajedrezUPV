@@ -95,7 +95,7 @@ public:
                 else{
                     menor = x1;
                 }
-                for (int i = 1; i = abs(x1 - x2); i++){
+                for (int i = 1; i = abs(x1 - x2)-1; i++){
                     if (tablero[y1][menor + i] != '.'){
                         return false;
                     }
@@ -109,7 +109,7 @@ public:
                 else{
                     menor = y1;
                 }
-                for (int i = 1; i = abs(y1 - y2); i++){
+                for (int i = 1; i = abs(y1 - y2)-1; i++){
                     if (tablero[menor + i][x1] != '.'){
                         return false;
                     }
@@ -133,7 +133,7 @@ public:
             //comprobar que no se ha saltado ninguan pieza.
             if (x1 > x2){
                if(y1 > y2){
-                    for(int i = 1; i = abs(x1-x2); i++){
+                    for(int i = 1; i = abs(x1-x2)-1; i++){
                         if (tablero[y2+i][x2 +i] != '.'){
                             return false;
 
@@ -141,7 +141,7 @@ public:
                     }
                }
                else{
-                    for(int i = 1; i = abs(x1-x2); i++){
+                    for(int i = 1; i = abs(x1-x2)-1; i++){
                         if (tablero[y1+i][x2 +i] != '.'){
                             return false;
 
@@ -151,7 +151,7 @@ public:
             }
             else{
                 if(y1 > y2){
-                for(int i = 1; i = abs(x1-x2); i++){
+                for(int i = 1; i = abs(x1-x2)-1; i++){
                         if (tablero[y2+i][x1 +i] != '.'){
                             return false;
 
@@ -159,7 +159,7 @@ public:
                     }
                }
                else{
-                    for(int i = 1; i = abs(x1-x2); i++){
+                    for(int i = 1; i = abs(x1-x2)-1; i++){
                         if (tablero[y1+i][x1 +i] != '.'){
                             return false;
 
