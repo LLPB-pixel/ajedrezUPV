@@ -371,32 +371,253 @@ public:
 
     bool isKingInCheck(int xb, int yb,int xn, int yn){
         if (white_turn){
-           for(int i = 0; i <8; i++){
-                for (int j = 0; j <8; j++){
-                    char pieza = tablero[j][i];
-                    int piez = static_cast<int>(pieza);
-                    if ((piez>96)&&(piez<123)){
-                        if(isSuchMoveLegal("hhhh", i, j, xb, yb)){
-                            //he hecho un arreglillo para que compile. En pricipio daria igual lo que le pongo a la funcion
-                            return true;
-                        }
+            //caso1 le esta dando jaque un caballo
+            //caso2 le esta dando jaque un alfil
+            int xb1 = xb + 1;
+            int yb1 = yb + 1;
+            //caso jaque de peon
+            if (tablero[yb1][xb1] == 'p'){
+                return true;
+            }
+            //buscamos hacia arriba a la derecha
+            while ((xb1 <= 7)&&(yb1 <= 7)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1++;
+                yb1++;
+            }
+
+            xb1 = xb - 1;
+            yb1 = yb + 1;
+            //caso jaque de peon
+            if (tablero[yb1][xb1] == 'p'){
+                return true;
+            }
+            //buscamos un alfil arriba a la izquierda
+            while ((xb1 >= 0)&&(yb1 <= 7)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1--;
+                yb1++;
+            }
+
+            xb1 = xb + 1;
+            yb1 = yb - 1;
+
+            //buscamos un alfil abajo a la derecha
+            while ((xb1 <= 7)&&(yb1 >= 0)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1++;
+                yb1--;
+            }
+            xb1 = xb - 1;
+            yb1 = yb - 1;
+            //buscamos un alfil abajo a la izqda
+
+            while ((xb1 >= 0)&&(yb1 >= 0)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'b'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1++;
+                yb1--;
+            }
+            // caso del caballo
+            // todas las posibles posiciones donde puede saltar:
+            int posiblesSaltos[8][2] = {
+            {xb + 2, yb + 1},
+            {xb + 2, yb - 1},
+            {xb - 2, yb + 1},
+            {xb - 2, yb - 1},
+            {xb + 1, yb + 2},
+            {xb + 1, yb - 2},
+            {xb - 1, yb + 2},
+            {xb - 1, yb - 2}
+            };
+            for (int i = 0; i < 8; i++){
+                if ((posiblesSaltos[i][0] >= 0 && posiblesSaltos[i][0] <= 7) &&(posiblesSaltos[i][1] >= 0 && posiblesSaltos[i][1] <= 7)){
+                    if(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]] == 'n'){
+                        return true;
                     }
                 }
-           }
+            }
+            //comprobar posible jaque de torre
+            //comprobamos hacia arriba
+            xb1 = xb;
+            yb1 = yb + 1;
+             while ((xb1 <= 7)&&(yb1 <= 7)&& (static_cast<int>(tablero[yb1][xb1]> 96))) {
+                if (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                yb1++;
+            }
+            yb1 = yb;
+            xb1 = xb - 1;
+
+
+            //buscamos una torre a la izquierda
+            while ((xb1 >= 0)&&(yb1 <= 7)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1--;
+
+            }
+
+            xb1 = xb + 1;
+            yb1 = yb;
+
+            //buscamos una torre a la derecha
+            while ((xb1 <= 7)&&(yb1 >= 0)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+                xb1++;
+
+            }
+            xb1 = xb;
+            yb1 = yb - 1;
+
+            //buscamos una torre abajo
+
+            while ((xb1 >= 0)&&(yb1 >= 0)&& ((tablero[yb1][xb1] == '.')|| (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'))) {
+                if (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'){
+                    return true;
+                }
+
+                yb1--;
+            }
+            //si todo este codigo se ejcuta es que no habra ninguna pieza que de jaque y entonces se devolvera false
+            return false;
+
         }
+        //caso negras
         else{
-            for(int i = 0; i <8; i++){
-                for (int j = 0; j <8; j++){
-                    char pieza = tablero[j][i];
-                    int piez = static_cast<int>(pieza);
-                    if ((piez<91)&&(piez>64)){
-                        if(isSuchMoveLegal("hhhh",i, j, xb, yb)){
-                            //he hecho un arreglillo para que compile. En pricipio daria igual lo que le pongo a la funcion
-                            return true;
-                        }
+            //caso1 le esta dando jaque un caballo
+            //caso2 le esta dando jaque un alfil
+            int xn1 = xn + 1;
+            int yn1 = yn + 1;
+            //caso jaque de peon
+            if (tablero[yn1][xn1] == 'P'){
+                return true;
+            }
+            //buscamos hacia arriba a la derecha
+            while ((xn1 <= 7)&&(yn1 <= 7)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1++;
+                yn1++;
+            }
+
+            xn1 = xn - 1;
+            yn1 = yn + 1;
+            //caso jaque de peon
+            if (tablero[yn1][xn1] == 'P'){
+                return true;
+            }
+            //buscamos un alfil arriba a la izquierda
+            while ((xn1 >= 0)&&(yn1 <= 7)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1--;
+                yn1++;
+            }
+
+            xn1 = xn + 1;
+            yn1 = yn - 1;
+
+            //buscamos un alfil abajo a la derecha
+            while ((xn1 <= 7)&&(yn1 >= 0)&& (((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q')))) {
+                if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1++;
+                yn1--;
+            }
+            xn1 = xn - 1;
+            yn1 = yn - 1;
+            //buscamos un alfil abajo a la izqda
+
+            while ((xn1 >= 0)&&(yn1 >= 0)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1++;
+                yn1--;
+            }
+            // caso del caballo
+            // todas las posibles posiciones donde puede saltar:
+            int posiblesSaltos[8][2] = {
+            {xn + 2, yn + 1},
+            {xn + 2, yn - 1},
+            {xn - 2, yn + 1},
+            {xn - 2, yn - 1},
+            {xn + 1, yn + 2},
+            {xn + 1, yn - 2},
+            {xn - 1, yn + 2},
+            {xn - 1, yn - 2}
+            };
+            for (int i = 0; i < 8; i++){
+                if ((posiblesSaltos[i][0] >= 0 && posiblesSaltos[i][0] <= 7) &&(posiblesSaltos[i][1] >= 0 && posiblesSaltos[i][1] <= 7)){
+                    if(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]] == 'N'){
+                        return true;
                     }
                 }
-           }
+            }
+            //comprobar posible jaque de torre
+            //comprobamos hacia arriba
+            xn1 = xn;
+            yn1 = yn + 1;
+             while ((xn1 <= 7)&&(yn1 <= 7)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                yn1++;
+            }
+            yn1 = yn;
+            xn1 = xn - 1;
+
+
+            //buscamos una torre a la izquierda
+            while ((xn1 >= 0)&&(yn1 <= 7)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1--;
+
+            }
+
+            xn1 = xn + 1;
+            yn1 = yn;
+
+            //buscamos una torre a la derecha
+            while ((xn1 <= 7)&&(yn1 >= 0)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+                xn1++;
+
+            }
+            xn1 = xn;
+            yn1 = yn - 1;
+
+            //buscamos una torre abajo
+
+            while ((xn1 >= 0)&&(yn1 >= 0)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'))) {
+                if (tablero[yn1][xn1] == 'R'|| tablero[yn1][xn1] == 'Q'){
+                    return true;
+                }
+
+                yn1--;
+            }
+            //si todo este codigo se ejcuta es que no habra ninguna pieza que de jaque y entonces se devolvera false
+            return false;
+
         }
     }
 
