@@ -119,7 +119,7 @@ public:
         else{
             return false;
         }
-        
+
     }
     bool isSuchKnightMoveLegal(int x1, int y1, int x2, int y2){
         if((abs(x1 - x2) == 2 && abs(y1-y2)== 1) || (abs(x1 - x2) == 1 && abs(y1-y2)== 2)){
@@ -175,7 +175,7 @@ public:
         }
 
     }
-    bool isSuchQueenMoveLegal( int x1, int y1, int x2, int y2){
+    bool isSuchQueenMoveLegal(int x1, int y1, int x2, int y2){
         if (abs(x1 - x2) == abs(y1-y2)){
             return isSuchBishopMoveLegal(x1, y1, x2, y2);
         }
@@ -184,11 +184,11 @@ public:
         }
     }
 
-    bool isSuchKingMoveLegal(bool color, int x1, int y1, int x2, int y2){
+    bool isSuchKingMoveLegal(int x1, int y1, int x2, int y2){
         return true;
     }
-    bool isSuchPawnMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        if (color){
+    bool isSuchPawnMoveLegal(int x1, int y1, int x2, int y2){
+        if (white_turn){
             //blancas
             if (tablero[y2][x2] == '.'){
                 //caso en que avanza
@@ -200,11 +200,11 @@ public:
                         return false;
                     }
                 }
-                if (y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p'){
-                        string ultimajugada = registroJugadas[numJugada]//por ajustar
+                if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
+                        string ultimajugada = registroJugadas[numJugada];//por ajustar
                         int ultx2 = dictionary(ultimajugada[2]);
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
-                        if ((utly2 == 4) && (ultx2 == x2)){
+                        if ((ulty2 == 4) && (ultx2 == x2)){
                             return true;
                         }
                         else{
@@ -222,7 +222,7 @@ public:
                 }
             }
             else{
-                if(abs(x1-x2) == 1 ) && (y2-y1 == 1)){
+                if((abs(x1-x2) == 1 ) && (y2-y1 == 1)){
                    return true;
                 }
                 else{
@@ -242,11 +242,11 @@ public:
                         return false;
                     }
                 }
-                if (y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P'){
-                        string ultimajugada = registroJugadas[numJugada]//por ajustar
+                if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
+                        string ultimajugada = registroJugadas[numJugada];//por ajustar
                         int ultx2 = dictionary(ultimajugada[2]);
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
-                        if ((utly2 == 3) && (ultx2 == x2)){
+                        if ((ulty2 == 3) && (ultx2 == x2)){
                             return true;
                         }
                         else{
@@ -264,7 +264,7 @@ public:
                 }
             }
             else{
-                if(abs(x1-x2) == 1 ) && (y1-y2 == 1)){
+                if((abs(x1-x2) == 1 ) && (y1-y2 == 1)){
                    return true;
                 }
                 else{
@@ -288,7 +288,6 @@ public:
             char pieza = tablero[y1][x1];
             if(pieza != '.'){
                 if(white_turn){
-                    bool color = true;
                     int piez = static_cast<int>(pieza); //casting
                     if (piez < 96){
                         //vease tabla ascii, estamos comprobando que hay una letra mayuscula en la casilla de origen
@@ -298,7 +297,7 @@ public:
                             //comprobamos que no haya una letra mayuscula (pieza blanca) en la casilla de destino
                             switch(pieza){
                                 case 'P':
-                                    return isSuchPawnMoveLegal(color, x1, y1, x2, y2);
+                                    return isSuchPawnMoveLegal(x1, y1, x2, y2);
                                 case 'B':
                                     return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'N':
@@ -308,7 +307,7 @@ public:
                                 case 'Q':
                                     return isSuchQueenMoveLegal( x1, y1, x2, y2);
                                 case 'K':
-                                    return isSuchKingMoveLegal(color, x1, y1, x2, y2);
+                                    return isSuchKingMoveLegal( x1, y1, x2, y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
@@ -322,7 +321,6 @@ public:
                     }
                 }
                 else if(!white_turn){
-                    bool color = false;
                     // turno de las negras
                     int piez = static_cast<int>(pieza); //casting
                     if(piez > 96){
@@ -334,7 +332,7 @@ public:
                             //comprobamos que no haya una letra minuscula (pieza negra) del mismo color en dicha casilla
                             switch(pieza){
                                 case 'p':
-                                    return isSuchPawnMoveLegal(color, x1, y1, x2, y2);
+                                    return isSuchPawnMoveLegal(x1, y1, x2, y2);
                                 case 'b':
                                     return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'n':
@@ -344,7 +342,7 @@ public:
                                 case 'q':
                                     return isSuchQueenMoveLegal( x1, y1, x2, y2);
                                 case 'k':
-                                    return isSuchKingMoveLegal(color, x1, y1, x2, y2);
+                                    return isSuchKingMoveLegal(x1, y1, x2, y2);
                                 default:
                                     cout<< "error detectando si"<< move << "es legal"<<endl;
                             }
