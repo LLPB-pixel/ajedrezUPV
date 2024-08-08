@@ -188,7 +188,91 @@ public:
         return true;
     }
     bool isSuchPawnMoveLegal(bool color, int x1, int y1, int x2, int y2){
-        return true;
+        if (color){
+            //blancas
+            if (tablero[y2][x2] == '.'){
+                //caso en que avanza
+                if (y1 == 1){
+                    if ((y1-y2 == 1 || y1 -y2 == 2)&& (x1 = x2)){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                if (y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p'){
+                        string ultimajugada = registroJugadas[numJugada]//por ajustar
+                        int ultx2 = dictionary(ultimajugada[2]);
+                        int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
+                        if ((utly2 == 4) && (ultx2 == x2)){
+                            return true;
+                        }
+                        else{
+                            return false;
+                        }
+
+                }
+                else{
+                   if ((y2-y1 == 1)&& (x1 = x2)){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            }
+            else{
+                if(abs(x1-x2) == 1 ) && (y2-y1 == 1)){
+                   return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        }
+        else{
+            //negras
+            if (tablero[y2][x2] == '.'){
+                //caso en que avanza
+                if (y1 == 6){
+                    if ((y1-y2 == 1 || y1 -y2 == 2)&& (x1 = x2)){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                if (y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P'){
+                        string ultimajugada = registroJugadas[numJugada]//por ajustar
+                        int ultx2 = dictionary(ultimajugada[2]);
+                        int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
+                        if ((utly2 == 3) && (ultx2 == x2)){
+                            return true;
+                        }
+                        else{
+                            return false;
+                        }
+
+                }
+                else{
+                   if ((y1-y2 == 1)&& (x1 = x2)){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            }
+            else{
+                if(abs(x1-x2) == 1 ) && (y1-y2 == 1)){
+                   return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        }
+
     }
 
 
