@@ -294,7 +294,7 @@ public:
         tablero[y1][x1] = '.';
     }
 
-hola
+
 
 };
 
