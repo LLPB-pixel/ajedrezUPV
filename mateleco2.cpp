@@ -85,6 +85,7 @@ public:
 
     }
     //he puesto return true para que esta parte compile y poder depurar el código
+
     bool isSuchRookMoveLegal( int x1, int y1, int x2, int y2){
         if (x1 == x2 || y1 == y2){
            if (x1 != x2){
@@ -309,7 +310,8 @@ public:
                                 case 'K':
                                     return isSuchKingMoveLegal( x1, y1, x2, y2);
                                 default:
-                                    cout<< "error detectando si"<< move << "es legal"<<endl;
+                                    cout << "error detectando si " << move << " es legal" << endl;
+
                             }
                         }
                         else{
@@ -364,6 +366,37 @@ public:
         }else{
             return false;
         }
+        }
+    }
+
+    bool isKingInCheck(int xb, int yb,int xn, int yn){
+        if (white_turn){
+           for(int i = 0; i <8; i++){
+                for (int j = 0; j <8; j++){
+                    char pieza = tablero[j][i];
+                    int piez = static_cast<int>(pieza);
+                    if ((piez>96)&&(piez<123)){
+                        if(isSuchMoveLegal("hhhh", i, j, xb, yb)){
+                            //he hecho un arreglillo para que compile. En pricipio daria igual lo que le pongo a la funcion
+                            return true;
+                        }
+                    }
+                }
+           }
+        }
+        else{
+            for(int i = 0; i <8; i++){
+                for (int j = 0; j <8; j++){
+                    char pieza = tablero[j][i];
+                    int piez = static_cast<int>(pieza);
+                    if ((piez<91)&&(piez>64)){
+                        if(isSuchMoveLegal("hhhh",i, j, xb, yb)){
+                            //he hecho un arreglillo para que compile. En pricipio daria igual lo que le pongo a la funcion
+                            return true;
+                        }
+                    }
+                }
+           }
         }
     }
 
