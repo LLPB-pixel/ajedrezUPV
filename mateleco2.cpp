@@ -7,10 +7,12 @@ class TableroAjedrez {
 
 public:
     // Attribute
+    string registroPosiciones[200][2]; // esta estructura cuenta las veces que se ha repetido una posicion
+    int numJugadaTFR = 0; //este numero sirve como indice de la estrucutra de datos anterior
     char tablero[8][8];
     string registroJugadas[400]; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
     bool white_turn = true;
-    int numJugada = 0;
+    int numJugada = 0; // para el registro de jugadas
 
     // Constructor
     TableroAjedrez() {
@@ -277,10 +279,6 @@ public:
     }
 
 
-
-
-
-    //falta terminar la funcion que determina si una jugada es legal
     bool isSuchMoveLegal(string move, int x1, int y1, int x2, int y2){
     if(x1 == y1 && x2 == y2){
         return false;
@@ -369,8 +367,8 @@ public:
         }
     }
 
-    bool isKingInCheck(int xb, int yb,int xn, int yn){
-        if (white_turn){
+    bool isKingInCheck(bool color, int xb, int yb, int xn, int yn){
+        if (color){
             //caso1 le esta dando jaque un caballo
             //caso2 le esta dando jaque un alfil
             int xb1 = xb + 1;
@@ -620,6 +618,21 @@ public:
 
         }
     }
+    string getLegalMoves(bool color){
+        return "";
+    }
+    bool isCheckMate(bool color){
+        return false;
+    }
+    bool isStalemate(bool color){
+        return false;
+    }
+    bool isThreeFoldRepetition(){
+        return false;
+    }
+    bool isFiftyMoveRule(){
+        return true;
+    }
 
     void makeMove(string move, int x1, int y1, int x2, int y2){
         //Precondicion: la jugada tiene que ser legal
@@ -639,3 +652,4 @@ int main() {
     tablero.display();
     return 0;
 }
+
