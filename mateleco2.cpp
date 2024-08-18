@@ -618,7 +618,7 @@ public:
 
         }
     }
-    string getLegalMoves(bool color){
+   string getLegalMoves(bool color){
         return "";
     }
     bool isCheckMate(bool color){
@@ -627,13 +627,42 @@ public:
     bool isStalemate(bool color){
         return false;
     }
+    string fromPositionToFEN(){
+        string FEN = "";
+        for (int i = 7; i > -1; i--){
+            for(int j = 0; j< 8; j++){
+                if(tablero[i][j] != '.'){
+                    string p = string s(1, tablero[i][j]);
+                    FEN = FEN + p;
+                }
+                else{
+                    int aux = 0;
+                    while((tablero[i][j]== '.')&&(j <8)){
+                        aux++;
+                        j++;
+                    }
+                    string num = to_string(aux);
+                    FEN = FEN + num;
+                }
+            }
+            FEN = FEN + "/";
+        }
+    }
     bool isThreeFoldRepetition(){
+        for (int i = 0; i <= numJugadaTFR; i++){
+            if(registroPosiciones[i][1] == "III"){
+                return true;
+            }
+        }
         return false;
     }
     bool isFiftyMoveRule(){
         return true;
     }
-
+    bool isGameOver(){
+        bool gameOver = isFiftyMoveRule() || isThreeFoldRepetition() || isStalemate() || isThreeFoldRepetition() || isCheckMate();
+        return gameOver;
+    }
     void makeMove(string move, int x1, int y1, int x2, int y2){
         //Precondicion: la jugada tiene que ser legal
         registroJugadas[numJugada] = move;
