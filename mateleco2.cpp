@@ -9,10 +9,15 @@ public:
     // Attribute
     string registroPosiciones[200][2]; // esta estructura cuenta las veces que se ha repetido una posicion
     int numJugadaTFR = 0; //este numero sirve como indice de la estrucutra de datos anterior
+
     char tablero[8][8];
     string registroJugadas[400]; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
     bool white_turn = true;
     int numJugada = 0; // para el registro de jugadas
+    bool whiteKingMoved = false;
+    bool blackKingMoved = false;
+    bool whiteRookMoved[2] = {false, false}; // izquierda y derecha, mejor que añadir una variable más a cada pieza
+    bool blackRookMoved[2] = {false, false};
 
     // Constructor
     TableroAjedrez() {
@@ -124,6 +129,44 @@ public:
         }
 
     }
+
+    bool isSuchKingMoveLegal(int x1, int y1, int x2, int y2) {
+        char king = tablero[y1][x1];
+        int deltaX = abs(x2 - x1);
+        int deltaY = abs(y2 - y1);
+
+        // Una casilla, cualquier dirección
+        if (deltaX <= 1 && deltaY <= 1) {
+            // Comprobamos que no haya una pieza propia
+            if (tablero[y2][x2] == '.') {
+                return true;
+            }
+        }
+
+        // Enroque
+        if (deltaX == 2 && deltaY == 0) {
+            if (king == 'K' && !whiteKingMoved) {
+                if (x2 == 6 && !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.') {
+                    // Enroque corto blancas
+                    return true;
+                } else if (x2 == 2 && !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.') {
+                    // Enroque largo blancas
+                    return true;
+                }
+            } else if (king == 'k' && !blackKingMoved) {
+                if (x2 == 6 && !blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.') {
+                    // Enroque corto negras
+                    return true;
+                } else if (x2 == 2 && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.') {
+                    // Enroque largo negras
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     bool isSuchKnightMoveLegal(int x1, int y1, int x2, int y2){
         if((abs(x1 - x2) == 2 && abs(y1-y2)== 1) || (abs(x1 - x2) == 1 && abs(y1-y2)== 2)){
             return true;
@@ -187,9 +230,6 @@ public:
         }
     }
 
-    bool isSuchKingMoveLegal(int x1, int y1, int x2, int y2){
-        return true;
-    }
     bool isSuchPawnMoveLegal(int x1, int y1, int x2, int y2){
         if (white_turn){
             //blancas
@@ -618,7 +658,7 @@ public:
 
         }
     }
-   string getLegalMoves(bool color){
+    string getLegalMoves(bool color){
         return "";
     }
     bool isCheckMate(bool color){
@@ -632,7 +672,7 @@ public:
         for (int i = 7; i > -1; i--){
             for(int j = 0; j< 8; j++){
                 if(tablero[i][j] != '.'){
-                    string p = string s(1, tablero[i][j]);
+                    string p = string p(1, tablero[i][j]);
                     FEN = FEN + p;
                 }
                 else{
@@ -660,25 +700,62 @@ public:
         return true;
     }
     bool isGameOver(){
-        bool gameOver = isFiftyMoveRule() || isThreeFoldRepetition() || isStalemate() || isThreeFoldRepetition() || isCheckMate();
+        bool gameOver = TableroAjedrez.isFiftyMoveRule() || TableroAjedrez.isThreeFoldRepetition() || TableroAjedrez.isStalemate() || TableroAjedrez.isThreeFoldRepetition() || TableroAjedrez.isCheckMate();
         return gameOver;
     }
-    void makeMove(string move, int x1, int y1, int x2, int y2){
-        //Precondicion: la jugada tiene que ser legal
+
+    void makeMove(string move, int x1, int y1, int x2, int y2) {
+        char piece = tablero[y1][x1];
+
+        // Enroque
+        if (piece == 'K' && abs(x2 - x1) == 2) {
+            whiteKingMoved = true;
+            if (x2 == 6) {
+                // Enroque corto
+                tablero[7][5] = 'R';
+                tablero[7][7] = '.';
+            } else if (x2 == 2) {
+                // Enrpque largo
+                tablero[7][3] = 'R';
+                tablero[7][0] = '.';
+            }
+        } else if (piece == 'k' && abs(x2 - x1) == 2) {
+            blackKingMoved = true;
+            if (x2 == 6) {
+                tablero[0][5] = 'r';
+                tablero[0][7] = '.';
+            } else if (x2 == 2) {
+                tablero[0][3] = 'r';
+                tablero[0][0] = '.';
+            }
+        }
+        else{
+            char piece = tablero[y1][x1];
+            tablero[y2][x2] = piece;
+            tablero[y1][x1] = '.';
+        }
+
+        // Actualizr las flags(por ahora solo las del enroque)
+        if (piece == 'K') whiteKingMoved = true;
+        if (piece == 'k') blackKingMoved = true;
+        if (piece == 'R' && x1 == 0) whiteRookMoved[0] = true;
+        if (piece == 'R' && x1 == 7) whiteRookMoved[1] = true;
+        if (piece == 'r' && x1 == 0) blackRookMoved[0] = true;
+        if (piece == 'r' && x1 == 7) blackRookMoved[1] = true;
+
+        // Registrar jugada
         registroJugadas[numJugada] = move;
         numJugada++;
-
-        tablero[y2][x2]= tablero[y1][x1];
-        tablero[y1][x1] = '.';
     }
 
-
-
 };
+
+
+
+
 
 int main() {
     TableroAjedrez tablero;
     tablero.display();
     return 0;
 }
-
