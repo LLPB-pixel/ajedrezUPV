@@ -672,7 +672,8 @@ public:
         for (int i = 7; i > -1; i--){
             for(int j = 0; j< 8; j++){
                 if(tablero[i][j] != '.'){
-                    string p = string p(1, tablero[i][j]);
+                    string p = "";          // Inicializamos un string vacío
+                    p.push_back(tablero[i][j]); // Añadimos el carácter al string 'p'
                     FEN = FEN + p;
                 }
                 else{
@@ -687,6 +688,7 @@ public:
             }
             FEN = FEN + "/";
         }
+        return FEN;
     }
     bool isThreeFoldRepetition(){
         for (int i = 0; i <= numJugadaTFR; i++){
@@ -700,7 +702,7 @@ public:
         return true;
     }
     bool isGameOver(){
-        bool gameOver = TableroAjedrez.isFiftyMoveRule() || TableroAjedrez.isThreeFoldRepetition() || TableroAjedrez.isStalemate() || TableroAjedrez.isThreeFoldRepetition() || TableroAjedrez.isCheckMate();
+        bool gameOver = isFiftyMoveRule() || isThreeFoldRepetition() || isStalemate(white_turn) || isCheckMate(white_turn);
         return gameOver;
     }
 
@@ -759,3 +761,4 @@ int main() {
     tablero.display();
     return 0;
 }
+
