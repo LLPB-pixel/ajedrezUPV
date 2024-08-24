@@ -6,14 +6,33 @@ using namespace std;
 class TableroAjedrez {
 
 public:
-    // Attribute
+    //atributos esenciales
+    char tablero[8][8];
+    bool white_turn = true;
+
+    //atributos secundarios
+    string registroJugadas[400]; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
+    int numJugada = 0; // para el registro de jugadas
+
+
+    // Regla triple repeticion
     string registroPosiciones[200][2]; // esta estructura cuenta las veces que se ha repetido una posicion
     int numJugadaTFR = 0; //este numero sirve como indice de la estrucutra de datos anterior
 
-    char tablero[8][8];
-    string registroJugadas[400]; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
-    bool white_turn = true;
-    int numJugada = 0; // para el registro de jugadas
+    //Regla 50 jugadas
+    int regla50jugadas = 0;
+
+
+    //comprobar si se ha acabdola partida y pq
+    bool gameOverByTFR = false;
+    bool gameOverBy50MoveRule = false;
+    bool gameOver = false;
+    bool gameOverByStalemate = false;
+    bool gameOverByCheckMate = false;
+
+    int regla50jugadas = 0;
+
+    //tema enroque y tal
     bool whiteKingMoved = false;
     bool blackKingMoved = false;
     bool whiteRookMoved[2] = {false, false}; // izquierda y derecha, mejor que añadir una variable más a cada pieza
@@ -131,10 +150,14 @@ public:
     }
 
     bool isSuchKingMoveLegal(int x1, int y1, int x2, int y2) {
+        int aux = 1;
         char king = tablero[y1][x1];
+        int deltaXp = x2 - x1;
         int deltaX = abs(x2 - x1);
         int deltaY = abs(y2 - y1);
-
+        if (deltaXp<0){
+            aux = -1;
+        }
         // Una casilla, cualquier dirección
         if (deltaX <= 1 && deltaY <= 1) {
             // Comprobamos que no haya una pieza propia
@@ -146,18 +169,18 @@ public:
         // Enroque
         if (deltaX == 2 && deltaY == 0) {
             if (king == 'K' && !whiteKingMoved) {
-                if (x2 == 6 && !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.') {
+                if (x2 == 6 && !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&& isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque corto blancas
                     return true;
-                } else if (x2 == 2 && !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.') {
+                } else if (x2 == 2 && !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&&isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque largo blancas
                     return true;
                 }
             } else if (king == 'k' && !blackKingMoved) {
-                if (x2 == 6 && !blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.') {
+                if (x2 == 6 && !blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&&isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque corto negras
                     return true;
-                } else if (x2 == 2 && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.') {
+                } else if (x2 == 2 && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&& isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque largo negras
                     return true;
                 }
@@ -690,25 +713,28 @@ public:
         }
         return FEN;
     }
-    bool isThreeFoldRepetition(){
-        for (int i = 0; i <= numJugadaTFR; i++){
-            if(registroPosiciones[i][1] == "III"){
-                return true;
-            }
-        }
-        return false;
-    }
-    bool isFiftyMoveRule(){
-        return true;
-    }
+
     bool isGameOver(){
-        bool gameOver = isFiftyMoveRule() || isThreeFoldRepetition() || isStalemate(white_turn) || isCheckMate(white_turn);
+        bool gameOver = gameOverBy50MoveRule || gameOverByTFR || isStalemate(white_turn) || isCheckMate(white_turn);
         return gameOver;
     }
 
     void makeMove(string move, int x1, int y1, int x2, int y2) {
         char piece = tablero[y1][x1];
+        char destino = tablero[y2][x2];
+        //Si avanza un peon o hay una captura, reiniciamos la lista de TFR y el contador de la regla de las 50jugadas
+        if(piece == 'P' || piece == 'p'|| destino != '.'){
+            //reinicia el contador 50 jugadas @jose
+            for(int i = 0; i< numJugadaTFR; i++){
+                registroPosiciones[i][0] = "";
+                registroPosiciones[i][1] = "";
 
+            }
+        }
+        else{
+            //avanza rl contador 50 jugadas
+            //comprueba si ha llegado a 100
+        }
         // Enroque
         if (piece == 'K' && abs(x2 - x1) == 2) {
             whiteKingMoved = true;
@@ -748,6 +774,23 @@ public:
         // Registrar jugada
         registroJugadas[numJugada] = move;
         numJugada++;
+
+        string FEN = fromPositionToFEN();
+        bool posicionNoRepetida = true;
+        // Registrar la posición
+        for(int i = 0; i < numJugadaTFR; i++){
+            if(registroPosiciones[i][0]== FEN){
+                registroPosiciones[i][1] = registroPosiciones[i][1] + "I";
+                string x = registroPosiciones[i][1];
+                if (x.length() == 3){
+                    gameOverByTFR = true;
+                }
+                posicionNoRepetida = false;
+                break;
+            }
+        }
+        if (posicionNoRepetida)numJugadaTFR++;
+
     }
 
 };
@@ -761,4 +804,3 @@ int main() {
     tablero.display();
     return 0;
 }
-
