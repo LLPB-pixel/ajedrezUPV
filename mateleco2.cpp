@@ -266,7 +266,7 @@ public:
         }
     }
 
-    bool isSuchPawnMoveLegal(int x1, int y1, int x2, int y2){
+    bool isSuchPawnMoveLegal(string move, int x1, int y1, int x2, int y2){
         if (white_turn){
             //blancas
             if (tablero[y2][x2] == '.'){
@@ -279,7 +279,7 @@ public:
                         return false;
                     }
                 }
-                if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
+                else if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
                         int ultx2 = dictionary(ultimajugada[2]);
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
@@ -290,6 +290,14 @@ public:
                             return false;
                         }
 
+                }
+                else if(y1 == 6 && y2 == 7){
+                    if(move.size() == 5){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
                 }
                 else{
                    if ((y2-y1 == 1)&& (x1 = x2)){
@@ -321,7 +329,7 @@ public:
                         return false;
                     }
                 }
-                if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
+                else if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
                         int ultx2 = dictionary(ultimajugada[2]);
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
@@ -332,6 +340,14 @@ public:
                             return false;
                         }
 
+                }
+                else if(y1 == 1 && y2 == 0){
+                    if(move.size() == 5){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
                 }
                 else{
                    if ((y1-y2 == 1)&& (x1 = x2)){
@@ -372,7 +388,7 @@ public:
                             //comprobamos que no haya una letra mayuscula (pieza blanca) en la casilla de destino
                             switch(pieza){
                                 case 'P':
-                                    return isSuchPawnMoveLegal(x1, y1, x2, y2);
+                                    return isSuchPawnMoveLegal(move, x1, y1, x2, y2);
                                 case 'B':
                                     return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'N':
@@ -408,7 +424,7 @@ public:
                             //comprobamos que no haya una letra minuscula (pieza negra) del mismo color en dicha casilla
                             switch(pieza){
                                 case 'p':
-                                    return isSuchPawnMoveLegal(x1, y1, x2, y2);
+                                    return isSuchPawnMoveLegal(move, x1, y1, x2, y2);
                                 case 'b':
                                     return isSuchBishopMoveLegal(x1, y1, x2, y2);
                                 case 'n':
@@ -755,26 +771,43 @@ public:
                 // Enroque corto
                 tablero[7][5] = 'R';
                 tablero[7][7] = '.';
+                tablero[y2][x2] = piece;
+                tablero[y1][x1] = '.';
             } else if (x2 == 2) {
                 // Enrpque largo
                 tablero[7][3] = 'R';
                 tablero[7][0] = '.';
+                tablero[y2][x2] = piece;
+                tablero[y1][x1] = '.';
             }
         } else if (piece == 'k' && abs(x2 - x1) == 2) {
             blackKingMoved = true;
             if (x2 == 6) {
                 tablero[0][5] = 'r';
                 tablero[0][7] = '.';
+                tablero[y2][x2] = piece;
+                tablero[y1][x1] = '.';
             } else if (x2 == 2) {
                 tablero[0][3] = 'r';
                 tablero[0][0] = '.';
+                tablero[y2][x2] = piece;
+                tablero[y1][x1] = '.';
             }
         }
+        //coronacion blanca
+        else if(piece == 'P' && x1 == 6 && x2 == 7){
+            char coronacion = move[4]; // ultima letra de la jugada
+            //@santi completa
+        }
+        // coronacion negra
+        else if(piece == 'p' && x1 ==  && x2 == ){
+            //@santi completa
+        }
 
-
-        tablero[y2][x2] = piece;
-        tablero[y1][x1] = '.';
-
+        else{
+            tablero[y2][x2] = piece;
+            tablero[y1][x1] = '.';
+        }
 
         // Actualizr las flags(por ahora solo las del enroque)
         if (piece == 'K') {
