@@ -16,7 +16,7 @@ public:
 
 
     // Regla triple repeticion
-    string registroPosiciones[200][2]; // esta estructura cuenta las veces que se ha repetido una posicion
+    string registroPosiciones[101][2]; // esta estructura cuenta las veces que se ha repetido una posicion
     int numJugadaTFR = 0; //este numero sirve como indice de la estrucutra de datos anterior
 
     //Regla 50 jugadas
@@ -30,13 +30,22 @@ public:
     bool gameOverByStalemate = false;
     bool gameOverByCheckMate = false;
 
-    int regla50jugadas = 0;
 
     //tema enroque y tal
     bool whiteKingMoved = false;
     bool blackKingMoved = false;
     bool whiteRookMoved[2] = {false, false}; // izquierda y derecha, mejor que añadir una variable más a cada pieza
     bool blackRookMoved[2] = {false, false};
+
+
+    //Coordenadas de los reyes
+    int cordReyes[2][2] = {
+        {0, 4}, //blanco
+        {7, 4}, // negro
+
+    };
+
+
 
     // Constructor
     TableroAjedrez() {
@@ -88,7 +97,7 @@ public:
 
     int dictionary(char letra){
         int ascii_code;
-        ascii_code = static_cast<int>(letra);
+        ascii_code = letra;
         return ascii_code - 97;
     }
     int descomponerJugada(string move){
@@ -100,12 +109,16 @@ public:
         char yi = letrasJugada[1]; //numero inicial
         char xf = letrasJugada[2]; //letra final
         char yf = letrasJugada[3]; //numero final
-
+        /*cout << xi << '\n';
+        cout << yi << '\n';
+        cout << xf << '\n';
+        cout << yf << '\n';
+        */
         // Convierto los chars a int y les resto 1 pq en programcion elprimer numero es el 0.
         int nxi = dictionary(xi); //aqui no hace falta porque en la funcion dictionary ya se hace
-        int nyi = yi - '0' - 1; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
+        int nyi = yi - 49; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
         int nxf = dictionary(xf);//aqui no hace falta porque en la funcion dictionary ya se hace
-        int nyf = yf - '0' - 1; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
+        int nyf = yf - 49; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
 
         return nxi, nyi, nxf, nyf;
 
@@ -342,7 +355,7 @@ public:
     }
 
 
-    bool isSuchMoveLegal(string move, int x1, int y1, int x2, int y2){
+    bool isSuchMovePseudoLegal(string move, int x1, int y1, int x2, int y2){
     if(x1 == y1 && x2 == y2){
         return false;
     }else{
@@ -367,9 +380,9 @@ public:
                                 case 'R':
                                     return isSuchRookMoveLegal(x1, y1, x2, y2);
                                 case 'Q':
-                                    return isSuchQueenMoveLegal( x1, y1, x2, y2);
+                                    return isSuchQueenMoveLegal(x1, y1, x2, y2);
                                 case 'K':
-                                    return isSuchKingMoveLegal( x1, y1, x2, y2);
+                                    return isSuchKingMoveLegal(x1, y1, x2, y2);
                                 default:
                                     cout << "error detectando si " << move << " es legal" << endl;
 
@@ -403,7 +416,7 @@ public:
                                 case 'r':
                                     return isSuchRookMoveLegal(x1, y1, x2, y2);
                                 case 'q':
-                                    return isSuchQueenMoveLegal( x1, y1, x2, y2);
+                                    return isSuchQueenMoveLegal(x1, y1, x2, y2);
                                 case 'k':
                                     return isSuchKingMoveLegal(x1, y1, x2, y2);
                                 default:
@@ -757,15 +770,24 @@ public:
                 tablero[0][0] = '.';
             }
         }
-        else{
-            char piece = tablero[y1][x1];
-            tablero[y2][x2] = piece;
-            tablero[y1][x1] = '.';
-        }
+
+
+        tablero[y2][x2] = piece;
+        tablero[y1][x1] = '.';
+
 
         // Actualizr las flags(por ahora solo las del enroque)
-        if (piece == 'K') whiteKingMoved = true;
-        if (piece == 'k') blackKingMoved = true;
+        if (piece == 'K') {
+            whiteKingMoved = true;
+            cordReyes[0][0] = y2;
+            cordReyes[0][1] = x2;
+
+        }
+        if (piece == 'k') {
+            blackKingMoved = true;
+            cordReyes[1][0] = y2;
+            cordReyes[1][1] = x2;
+        }
         if (piece == 'R' && x1 == 0) whiteRookMoved[0] = true;
         if (piece == 'R' && x1 == 7) whiteRookMoved[1] = true;
         if (piece == 'r' && x1 == 0) blackRookMoved[0] = true;
@@ -789,7 +811,12 @@ public:
                 break;
             }
         }
-        if (posicionNoRepetida)numJugadaTFR++;
+        if (posicionNoRepetida){
+                registroPosiciones[numJugadaTFR][0] = FEN;
+                registroPosiciones[numJugadaTFR][1] = "I";
+                numJugadaTFR++;
+        }
+        white_turn = !white_turn;
 
     }
 
@@ -798,9 +825,53 @@ public:
 
 
 
+void actualGame(TableroAjedrez tablero_principal){
+    string moove;
+    while (!tablero_principal.gameOver) {
+        cout << "Enter your move: ";
+        cin >> moove;
+        int xi;
+        int yi;
+        int xf;
+        int yf;
+        xi, yi, xf, yf = tablero_principal.descomponerJugada(moove);
+        cout << xi << '\n';
+        cout << yi << '\n';
+        cout << xf << '\n';
+        cout << yf << '\n';
+        if(tablero_principal.isSuchMovePseudoLegal(moove, xi, yi, xf, yf)){
+            TableroAjedrez tablero_sec = tablero_principal;
+            tablero_sec.makeMove(moove, xi, xf, yi, yf);
+            int xk;
+            int yk;
+            if (tablero_sec.white_turn){
+                yk = tablero_sec.cordReyes[0][0];
+                xk = tablero_sec.cordReyes[0][1];
+            }
+            else{
+                yk = tablero_sec.cordReyes[1][0];
+                xk = tablero_sec.cordReyes[1][1];
+            }
+            if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                tablero_principal.makeMove(moove, xi, yi, xf, yf);
+            }
+            else{
+                cout << "illegal move youre walking into check";
+                return actualGame(tablero_principal);
+            }
+        }
+        else{
+            cout << "illegal move";
+            return actualGame(tablero_principal);
+        }
+
+    }
+}
+
 
 int main() {
-    TableroAjedrez tablero;
-    tablero.display();
+    TableroAjedrez tablero_principal;
+    tablero_principal.display();
+    actualGame(tablero_principal);
     return 0;
 }
