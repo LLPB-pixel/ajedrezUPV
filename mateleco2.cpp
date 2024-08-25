@@ -292,7 +292,8 @@ public:
 
                 }
                 else if(y1 == 6 && y2 == 7){
-                    if(move.size() == 5){
+                    char coronacion = move[4];
+                    if(move.size() == 5 && (coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R')){
                         return true;
                     }
                     else{
@@ -342,7 +343,7 @@ public:
 
                 }
                 else if(y1 == 1 && y2 == 0){
-                    if(move.size() == 5){
+                    if(move.size() == 5 && (coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R')){
                         return true;
                     }
                     else{
@@ -908,3 +909,4 @@ int main() {
     actualGame(tablero_principal);
     return 0;
 }
+
