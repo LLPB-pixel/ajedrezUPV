@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <tuple>
+
 using namespace std;
 
 class TableroAjedrez {
@@ -86,44 +88,6 @@ public:
         }
     }
 
-
-
-    // Se que este metodo es un poco raro, pero actua como diccionario
-    // Si pones, devuelve
-    // a    ----> 0
-    // b    ----> 1
-    // c    ----> 2
-    // Y asi sucesivamente. Sera muy util para relacionar jugadas con casillas del tablero virtual que hemos creado.
-
-    int dictionary(char letra){
-        int ascii_code;
-        ascii_code = letra;
-        return ascii_code - 97;
-    }
-    int descomponerJugada(string move){
-        char letrasJugada[4];
-        for (int i = 0; i < 4; ++i) {
-            letrasJugada[i] = move[i];
-        }
-        char xi = letrasJugada[0]; //letra inicial
-        char yi = letrasJugada[1]; //numero inicial
-        char xf = letrasJugada[2]; //letra final
-        char yf = letrasJugada[3]; //numero final
-        /*cout << xi << '\n';
-        cout << yi << '\n';
-        cout << xf << '\n';
-        cout << yf << '\n';
-        */
-        // Convierto los chars a int y les resto 1 pq en programcion elprimer numero es el 0.
-        int nxi = dictionary(xi); //aqui no hace falta porque en la funcion dictionary ya se hace
-        int nyi = yi - 49; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
-        int nxf = dictionary(xf);//aqui no hace falta porque en la funcion dictionary ya se hace
-        int nyf = yf - 49; // estoy convirtiendo el caracter alfanumerico en un numero explotando una caracteristica de la tabla ascii
-
-        return nxi, nyi, nxf, nyf;
-
-    }
-    //he puesto return true para que esta parte compile y poder depurar el código
 
     bool isSuchRookMoveLegal( int x1, int y1, int x2, int y2){
         if (x1 == x2 || y1 == y2){
@@ -281,7 +245,7 @@ public:
                 }
                 else if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
-                        int ultx2 = dictionary(ultimajugada[2]);
+                        int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
                         if ((ulty2 == 4) && (ultx2 == x2)){
                             return true;
@@ -332,7 +296,7 @@ public:
                 }
                 else if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
-                        int ultx2 = dictionary(ultimajugada[2]);
+                        int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
                         if ((ulty2 == 3) && (ultx2 == x2)){
                             return true;
@@ -343,6 +307,7 @@ public:
 
                 }
                 else if(y1 == 1 && y2 == 0){
+                    char coronacion = move[4];
                     if(move.size() == 5 && (coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R')){
                         return true;
                     }
@@ -857,6 +822,26 @@ public:
 };
 
 
+// Función para descomponer la jugada y retornar las coordenadas
+    std::tuple<int, int, int, int> descomponerJugada(const std::string& move) {
+
+    if (move.size() != 4) {
+        throw std::invalid_argument("La jugada debe tener 4 caracteres.");
+    }
+
+    char xi = move[0]; // Letra inicial
+    char yi = move[1]; // Número inicial
+    char xf = move[2]; // Letra final
+    char yf = move[3]; // Número final
+
+    // Convertir los caracteres a números de coordenadas
+    int nxi = xi - 97;
+    int nyi = yi - 49;
+    int nxf = xf - 97;
+    int nyf = yf - 49;
+
+    return std::make_tuple(nxi, nyi, nxf, nyf);
+    }
 
 
 void actualGame(TableroAjedrez tablero_principal){
@@ -864,35 +849,43 @@ void actualGame(TableroAjedrez tablero_principal){
     while (!tablero_principal.gameOver) {
         cout << "Enter your move: ";
         cin >> moove;
-        int xi;
-        int yi;
-        int xf;
-        int yf;
-        xi, yi, xf, yf = tablero_principal.descomponerJugada(moove);
-        cout << xi << '\n';
-        cout << yi << '\n';
-        cout << xf << '\n';
-        cout << yf << '\n';
+        if(moove.length() < 4){
+            cout << "the move is too short"
+            return actualGame();
+        }
+        int xi, yi, xf, yf;
+
+        std::tie(xi, yi, xf, yf) = descomponerJugada(moove);
+
         if(tablero_principal.isSuchMovePseudoLegal(moove, xi, yi, xf, yf)){
             TableroAjedrez tablero_sec = tablero_principal;
             tablero_sec.makeMove(moove, xi, xf, yi, yf);
-            int xk;
-            int yk;
+            int xk, yk;
+
             if (tablero_sec.white_turn){
                 yk = tablero_sec.cordReyes[0][0];
                 xk = tablero_sec.cordReyes[0][1];
+                if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                    tablero_principal.makeMove(moove, xi, yi, xf, yf);
+                    return actualGame();
+                }
+                else{
+                    cout << "illegal move youre walking into check";
+                    return actualGame(tablero_principal);
+                }
             }
             else{
                 yk = tablero_sec.cordReyes[1][0];
                 xk = tablero_sec.cordReyes[1][1];
+                if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                    tablero_principal.makeMove(moove, xi, yi, xf, yf);
+                }
+                else{
+                    cout << "illegal move youre walking into check";
+                    return actualGame(tablero_principal);
+                }
             }
-            if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
-                tablero_principal.makeMove(moove, xi, yi, xf, yf);
-            }
-            else{
-                cout << "illegal move youre walking into check";
-                return actualGame(tablero_principal);
-            }
+
         }
         else{
             cout << "illegal move";
@@ -909,4 +902,3 @@ int main() {
     actualGame(tablero_principal);
     return 0;
 }
-
