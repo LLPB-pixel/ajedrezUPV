@@ -13,12 +13,11 @@ public:
     bool white_turn = true;
 
     //atributos secundarios
-    string registroJugadas[400]; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
-    int numJugada = 0; // para el registro de jugadas
+    string registroJugadas; //estos dos atributos estan por si acos queremos generar una funcion que deshaga jugadas
 
 
     // Regla triple repeticion
-    string registroPosiciones[101][2]; // esta estructura cuenta las veces que se ha repetido una posicion
+    string registroPosiciones[101][4]; // esta estructura cuenta las veces que se ha repetido una posicion
     int numJugadaTFR = 0; //este numero sirve como indice de la estrucutra de datos anterior
 
     //Regla 50 jugadas
@@ -244,7 +243,7 @@ public:
                     }
                 }
                 else if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
-                        string ultimajugada = registroJugadas[numJugada];//por ajustar
+                        string ultimajugada = registroJugadas;//por ajustar
                         int ulty1 = ultimajugada[1] - 49;
                         int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = ultimajugada[3] - 49;
@@ -297,7 +296,7 @@ public:
                     }
                 }
                 else if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
-                        string ultimajugada = registroJugadas[numJugada];//por ajustar
+                        string ultimajugada = registroJugadas;//por ajustar
                         int ulty1 = ultimajugada[1] - 49;
                         int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = ultimajugada[3] - 49;
@@ -712,9 +711,9 @@ public:
         return FEN;
     }
 
-    bool isGameOver(){
+    void isGameOver(){
         bool gameOver = gameOverBy50MoveRule || gameOverByTFR || isStalemate(white_turn) || isCheckMate(white_turn);
-        return gameOver;
+        return;
     }
 
     void makeMove(string move, int x1, int y1, int x2, int y2) {
@@ -722,7 +721,7 @@ public:
         char destino = tablero[y2][x2];
         //Si avanza un peon o hay una captura, reiniciamos la lista de TFR y el contador de la regla de las 50jugadas
         if(piece == 'P' || piece == 'p'|| destino != '.'){
-            //reinicia el contador 50 jugadas @jose
+            regla50jugadas = 1;
             for(int i = 0; i< numJugadaTFR; i++){
                 registroPosiciones[i][0] = "";
                 registroPosiciones[i][1] = "";
@@ -730,8 +729,10 @@ public:
             }
         }
         else{
-            //avanza rl contador 50 jugadas
-            //comprueba si ha llegado a 100
+            regla50jugadas++;
+            if (regla50jugadas == 100){
+                gameOverBy50MoveRule = true;
+            }
         }
         // Enroque
         if (piece == 'K' && abs(x2 - x1) == 2) {
@@ -799,14 +800,14 @@ public:
         if (piece == 'r' && x1 == 7) blackRookMoved[1] = true;
 
         // Registrar jugada
-        registroJugadas[numJugada] = move;
-        numJugada++;
+        registroJugadas = move;
+
 
         string FEN = fromPositionToFEN();
         bool posicionNoRepetida = true;
         // Registrar la posición
         for(int i = 0; i < numJugadaTFR; i++){
-            if(registroPosiciones[i][0]== FEN){
+            if(registroPosiciones[i][0] == FEN){
                 registroPosiciones[i][1] = registroPosiciones[i][1] + "I";
                 string x = registroPosiciones[i][1];
                 if (x.length() == 3){
@@ -822,6 +823,9 @@ public:
                 numJugadaTFR++;
         }
         white_turn = !white_turn;
+
+        isGameOver();
+
 
     }
 
@@ -899,6 +903,7 @@ void actualGame(TableroAjedrez& tablero_principal){
         }
 
     }
+    cout<<"Se ha acabado la partida";
 }
 
 
