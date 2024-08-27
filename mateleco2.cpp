@@ -146,18 +146,18 @@ public:
         // Enroque
         if (deltaX == 2 && deltaY == 0) {
             if (king == 'K' && !whiteKingMoved) {
-                if (x2 == 6 && !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&& isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
+                if (x2 == 6 && tablero[7][7] == 'R'&& !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&& isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque corto blancas
                     return true;
-                } else if (x2 == 2 && !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&&isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
+                } else if (x2 == 2 && tablero[7][0] == 'R'&& !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&&isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque largo blancas
                     return true;
                 }
             } else if (king == 'k' && !blackKingMoved) {
-                if (x2 == 6 && !blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&&isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
+                if (x2 == 6 && tablero[0][7] == 'r'&&!blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&&isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque corto negras
                     return true;
-                } else if (x2 == 2 && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&& isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
+                } else if (x2 == 2 && tablero[0][0] == 'r' && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&& isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque largo negras
                     return true;
                 }
@@ -245,9 +245,10 @@ public:
                 }
                 else if ((y1 == 4)&&(y2 == 5)&&(abs(x1-x2) == 1)&&(tablero[4][x2] == 'p')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
+                        int ulty1 = ultimajugada[1] - 49;
                         int ultx2 = ultimajugada[2] - 97;
-                        int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
-                        if ((ulty2 == 4) && (ultx2 == x2)){
+                        int ulty2 = ultimajugada[3] - 49;
+                        if ((ulty2 == 4) && (ultx2 == x2 && ulty1 == 6)){
                             return true;
                         }
                         else{
@@ -255,7 +256,8 @@ public:
                         }
 
                 }
-                else if(y1 == 6 && y2 == 7){
+                //CORONAR
+                else if(y1 == 6 && y2 == 7 && move.size() == 5){
                     char coronacion = move[4];
                     if(move.size() == 5 && (coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R')){
                         return true;
@@ -296,9 +298,10 @@ public:
                 }
                 else if ((y1 == 3)&&(y2 == 2)&&(abs(x1-x2) == 1)&&(tablero[3][x2] == 'P')){
                         string ultimajugada = registroJugadas[numJugada];//por ajustar
+                        int ulty1 = ultimajugada[1] - 49;
                         int ultx2 = ultimajugada[2] - 97;
-                        int ulty2 = static_cast<int>(ultimajugada[3]) - 49;
-                        if ((ulty2 == 3) && (ultx2 == x2)){
+                        int ulty2 = ultimajugada[3] - 49;
+                        if ((ulty2 == 3) && (ultx2 == x2) && (ulty1 == 1)){
                             return true;
                         }
                         else{
@@ -306,9 +309,9 @@ public:
                         }
 
                 }
-                else if(y1 == 1 && y2 == 0){
+                else if(y1 == 1 && y2 == 0 && move.size() == 5){
                     char coronacion = move[4];
-                    if(move.size() == 5 && (coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R')){
+                    if(coronacion == 'N'|| coronacion == 'B'|| coronacion == 'Q'|| coronacion == 'R'){
                         return true;
                     }
                     else{
@@ -763,11 +766,14 @@ public:
         //coronacion blanca
         else if(piece == 'P' && x1 == 6 && x2 == 7){
             char coronacion = move[4]; // ultima letra de la jugada
-            //@santi completa
+            tablero[y2][x2] = coronacion;
+            tablero[y1][x1] = '.';
         }
         // coronacion negra
-        else if(piece == 'p' && x1 ==  && x2 == ){
-            //@santi completa
+        else if(piece == 'p' && x1 == 1 && x2 == 0){
+            char coronacion = move[4]; // ultima letra de la jugada
+            tablero[y2][x2] = coronacion;
+            tablero[y1][x1] = '.';
         }
 
         else{
@@ -844,14 +850,14 @@ public:
     }
 
 
-void actualGame(TableroAjedrez tablero_principal){
+void actualGame(TableroAjedrez& tablero_principal){
     string moove;
     while (!tablero_principal.gameOver) {
         cout << "Enter your move: ";
         cin >> moove;
         if(moove.length() < 4){
-            cout << "the move is too short"
-            return actualGame();
+            cout << "the move is too short";
+            return actualGame(tablero_principal);
         }
         int xi, yi, xf, yf;
 
@@ -867,7 +873,7 @@ void actualGame(TableroAjedrez tablero_principal){
                 xk = tablero_sec.cordReyes[0][1];
                 if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
-                    return actualGame();
+                    return actualGame(tablero_principal);
                 }
                 else{
                     cout << "illegal move youre walking into check";
