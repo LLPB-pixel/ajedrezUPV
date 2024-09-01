@@ -231,14 +231,18 @@ public:
 
     bool isSuchPawnMoveLegal(string move, int x1, int y1, int x2, int y2){
         if (white_turn){
+
             //blancas
             if (tablero[y2][x2] == '.'){
+
                 //caso en que avanza
                 if (y1 == 1){
-                    if ((y1-y2 == 1 || y1 -y2 == 2)&& (x1 = x2)){
+
+                    if ((y2-y1 == 1 || y2 -y1 == 2)&& (x1 == x2)){
                         return true;
                     }
                     else{
+
                         return false;
                     }
                 }
@@ -266,7 +270,7 @@ public:
                     }
                 }
                 else{
-                   if ((y2-y1 == 1)&& (x1 = x2)){
+                   if ((y2-y1 == 1)&& (x1 == x2)){
                         return true;
                     }
                     else{
@@ -288,7 +292,7 @@ public:
             if (tablero[y2][x2] == '.'){
                 //caso en que avanza
                 if (y1 == 6){
-                    if ((y1-y2 == 1 || y1 -y2 == 2)&& (x1 = x2)){
+                    if ((y1-y2 == 1 || y1 -y2 == 2)&& (x1 == x2)){
                         return true;
                     }
                     else{
@@ -318,7 +322,7 @@ public:
                     }
                 }
                 else{
-                   if ((y1-y2 == 1)&& (x1 = x2)){
+                   if ((y1-y2 == 1)&& (x1 == x2)){
                         return true;
                     }
                     else{
@@ -352,10 +356,11 @@ public:
                         //vease tabla ascii, estamos comprobando que hay una letra mayuscula en la casilla de origen
                         char destino = tablero[y2][x2];
                         int dest = static_cast<int>(destino);
-                        if(!(dest > 64) && (dest < 90)){
+                        if(!((dest > 64) && (dest < 90))){
                             //comprobamos que no haya una letra mayuscula (pieza blanca) en la casilla de destino
                             switch(pieza){
                                 case 'P':
+                                    cout<<"here"<< '\n';
                                     return isSuchPawnMoveLegal(move, x1, y1, x2, y2);
                                 case 'B':
                                     return isSuchBishopMoveLegal(x1, y1, x2, y2);
@@ -373,10 +378,12 @@ public:
                             }
                         }
                         else{
+                            cout<<"here";
                             return false;
                         }
                     }
                     else{
+                        cout<< "there";
                         return false;
                     }
                 }
@@ -855,6 +862,8 @@ public:
 
 
 void actualGame(TableroAjedrez& tablero_principal){
+    tablero_principal.display();
+
     string moove;
     while (!tablero_principal.gameOver) {
         cout << "Enter your move: ";
@@ -866,16 +875,19 @@ void actualGame(TableroAjedrez& tablero_principal){
         int xi, yi, xf, yf;
 
         std::tie(xi, yi, xf, yf) = descomponerJugada(moove);
-
+        cout<< xi<<'\n';
+        cout<< yi<<'\n';
+        cout<< xf<<'\n';
+        cout<< yf<<'\n';
         if(tablero_principal.isSuchMovePseudoLegal(moove, xi, yi, xf, yf)){
             TableroAjedrez tablero_sec = tablero_principal;
-            tablero_sec.makeMove(moove, xi, xf, yi, yf);
+            tablero_sec.makeMove(moove, xi, yi, xf, yf);
             int xk, yk;
 
             if (tablero_sec.white_turn){
                 yk = tablero_sec.cordReyes[0][0];
                 xk = tablero_sec.cordReyes[0][1];
-                if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                if(!tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
                     return actualGame(tablero_principal);
                 }
@@ -887,8 +899,9 @@ void actualGame(TableroAjedrez& tablero_principal){
             else{
                 yk = tablero_sec.cordReyes[1][0];
                 xk = tablero_sec.cordReyes[1][1];
-                if(tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                if(!tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
+                    return actualGame(tablero_principal);
                 }
                 else{
                     cout << "illegal move youre walking into check";
@@ -909,7 +922,6 @@ void actualGame(TableroAjedrez& tablero_principal){
 
 int main() {
     TableroAjedrez tablero_principal;
-    tablero_principal.display();
     actualGame(tablero_principal);
     return 0;
 }
