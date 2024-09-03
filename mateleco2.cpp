@@ -88,7 +88,7 @@ public:
     }
 
 
-    bool isSuchRookMoveLegal( int x1, int y1, int x2, int y2){
+    bool isSuchRookMoveLegal(int x1, int y1, int x2, int y2){
         if (x1 == x2 || y1 == y2){
            if (x1 != x2){
                 int menor;
@@ -103,6 +103,7 @@ public:
                         return false;
                     }
                 }
+                return true;
             }
             else if(y1 != y2){
             int menor;
@@ -117,6 +118,10 @@ public:
                         return false;
                     }
                 }
+                return true;
+           }
+           else{
+                return false;
            }
         }
         else{
@@ -143,7 +148,7 @@ public:
         }
 
         // Enroque
-        if (deltaX == 2 && deltaY == 0) {
+        else if (deltaX == 2 && deltaY == 0) {
             if (king == 'K' && !whiteKingMoved) {
                 if (x2 == 6 && tablero[7][7] == 'R'&& !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&& isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque corto blancas
@@ -151,6 +156,8 @@ public:
                 } else if (x2 == 2 && tablero[7][0] == 'R'&& !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&&isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque largo blancas
                     return true;
+                }else{
+                    return false;
                 }
             } else if (king == 'k' && !blackKingMoved) {
                 if (x2 == 6 && tablero[0][7] == 'r'&&!blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&&isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
@@ -159,11 +166,15 @@ public:
                 } else if (x2 == 2 && tablero[0][0] == 'r' && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&& isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque largo negras
                     return true;
+                } else{
+                    return false;
                 }
             }
         }
-
-        return false;
+        else{
+           return false;
+        }
+    return false;
     }
 
     bool isSuchKnightMoveLegal(int x1, int y1, int x2, int y2){
@@ -218,7 +229,7 @@ public:
         else{
             return false;
         }
-
+    return false;
     }
     bool isSuchQueenMoveLegal(int x1, int y1, int x2, int y2){
         if (abs(x1 - x2) == abs(y1-y2)){
@@ -374,7 +385,7 @@ public:
                                     return isSuchKingMoveLegal(x1, y1, x2, y2);
                                 default:
                                     cout << "error detectando si " << move << " es legal" << endl;
-
+                                    return false;
                             }
                         }
                         else{
@@ -411,7 +422,9 @@ public:
                                 case 'k':
                                     return isSuchKingMoveLegal(x1, y1, x2, y2);
                                 default:
-                                    cout<< "error detectando si"<< move << "es legal"<<endl;
+                                    cout << "error";
+                                    return false;
+
                             }
 
                         }
@@ -432,6 +445,7 @@ public:
             return false;
         }
         }
+    return false;
     }
 
     bool isKingInCheck(bool color, int xb, int yb, int xn, int yn){
@@ -693,7 +707,9 @@ public:
         //devuelve true si es ilegal
         return true;
     }
-
+    bool estaDentroDelTablero(int i, int j) {
+    return i >= 0 && i < 8 && j >= 0 && j < 8;
+}
 
     // x1, x2, y1, y2 -> x1y1x2y2
     string getPawnLegalMoves(bool color, int i, int j) {
@@ -741,7 +757,7 @@ public:
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "K" + " ";
         }
 
-
+        return moves;
     } else { // Peón negro
         // Movimiento de 1 casilla hacia adelante
         if (estaDentroDelTablero(i - 1, j) && tablero[i - 1][j] == 0) {
@@ -758,48 +774,168 @@ public:
         if (estaDentroDelTablero(i - 1, j + 1) && tablero[i - 1][j + 1] > 0) {
             moves += to_string(i - 1) + to_string(j + 1) + " "; // Captura derecha
         }
+        return moves;
     }
 
-    return moves;
-}
+    }
     string getBishopLegalMoves(bool color, int i, int j){
-
+        return "";
     }
     string getKnightLegalMoves(bool color, int i, int j){
-
+        return "";
     }
     string getRookLegalMoves(bool color, int i, int j){
+        string Legalmoves;
+        string Legalmove;
         if(color){
             //mirara la izqda
             int y = i;
             int x = j - 1;
-            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
                 if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
                     break;
                 }
                 else{
-                    string Legalmove = to_string(j) + to_string(i) + to_string[x] + to_string(i);
+                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
 
 
                 }
                 x--;
+                Legalmoves += Legalmove;
 
             }
             //mirar a la derecha
+            y = i;
+            x = j + 1;
+            while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
 
+
+                }
+                x++;
+                Legalmoves += Legalmove;
+
+            }
             //mirar a arriba
+            y = i + 1;
+            x = j;
+            while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
 
+
+                }
+                y++;
+                Legalmoves += Legalmove;
+
+            }
             //mirar abajo
+            y = i - 1;
+            x = j;
+            while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+
+
+                }
+                y--;
+                Legalmoves += Legalmove;
+
+            }
         }
 
         else{
+            //mirara la izqda
+            int y = i;
+            int x = j - 1;
+            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+
+
+                }
+                x--;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar a la derecha
+            y = i;
+            x = j + 1;
+            while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+
+
+                }
+                x++;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar a arriba
+            y = i + 1;
+            x = j;
+            while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+
+
+                }
+                y++;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar abajo
+            y = i - 1;
+            x = j;
+            while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+
+
+                }
+                y--;
+                Legalmoves += Legalmove;
+
+            }
 
         }
+        return Legalmoves;
     }
     string getQueenLegalMoves(bool color, int i, int j){
-
+        return getBishopLegalMoves(color, i, j) + getRookLegalMoves(color, i, j);
     }
     string getKingLegalMoves(bool color, int i, int j){
+        return "";
     }
 
     string getLegalMoves(bool color){
@@ -841,11 +977,15 @@ public:
                         case 'r':
                             legalMoves += getRookLegalMoves(color, i, j);
 
+                    }
                 }
             }
+
         }
-        return legalMoves;
+    return legalMoves;
     }
+
+
     bool isCheckMate(bool color){
         return false;
     }
