@@ -438,7 +438,8 @@ public:
         if (color){
             //caso1 le esta dando jaque un caballo
             //caso2 le esta dando jaque un alfil
-            int xb1 = xb + 1;
+
+            int xb1 = xb + 1; // arregkar
             int yb1 = yb + 1;
             //caso jaque de peon
             if (tablero[yb1][xb1] == 'p'){
@@ -685,7 +686,74 @@ public:
 
         }
     }
+
+
+    bool detectarIlegales(bool color){
+        //@jose
+        //devuelve true si es ilegal
+        return true;
+    }
+    // x1, x2, y1, y2 -> x1x2y1y2
+    string getPawnLegalMoves(bool color,int i, int j){
+
+    }
+    string getBishopLegalMoves(bool color, int i, int j){
+
+    }
+    string getKnightLegalMoves(bool color, int i, int j){
+
+    }
+    string getRookLegalMoves(bool color, int i, int j){
+        if(color){
+
+        }
+    }
+    string getQueenLegalMoves(bool color, int i, int j){
+
+    }
+    string getKingLegalMoves(bool color, int i, int j){
+    }
+
     string getLegalMoves(bool color){
+        if(color){
+            for(int i = 0; i <8; i++){
+                for(int j = 0; j <8; j++){
+                    switch(tablero[i][j]){
+                        case 'P':
+
+                        case 'B':
+
+                        case 'N':
+
+                        case 'Q':
+
+                        case 'K':
+
+                        case 'R':
+                    }
+                }
+            }
+        }
+        else{
+            for(int i = 0; i <8; i++){
+                for(int j = 0; j <8; j++){
+                    switch(tablero[i][j]){
+                        case 'p':
+
+                        case 'b':
+
+                        case 'n':
+
+                        case 'q':
+
+                        case 'k':
+
+                        case 'r':
+
+
+                }
+            }
+        }
         return "";
     }
     bool isCheckMate(bool color){
