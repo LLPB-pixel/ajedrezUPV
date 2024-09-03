@@ -695,7 +695,7 @@ public:
     }
 
 
-    // x1, x2, y1, y2 -> x1x2y1y2
+    // x1, x2, y1, y2 -> x1y1x2y2
     string getPawnLegalMoves(bool color, int i, int j) {
 
     //Falta detectar ilegales
@@ -704,41 +704,41 @@ public:
     if (color) { // Peón blanco
         // Movimiento de 1 casilla hacia adelante
         if (tablero[i + 1][j] == '.' && i + 1 != 7) {
-            moves +=  to_string(j) + to_string(j) + to_string(j)+ to_string(i + 1)+ " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1)+ " ";
 
 
             // Movimiento de 2 casillas hacia adelante si está en la fila inicial
             if (i == 1 && tablero[i + 2][j] == 0) {
-                moves +=  to_string(j) + to_string(j) + to_string(j)+ to_string(i + 2)+ " ";
+                moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 2)+ " ";
             }
         }
         //coronaciones
         else if(tablero[i + 1][j] == '.' && i + 1 == 7){
-            moves +=  to_string(j) + to_string(j) + to_string(i)+ to_string(i + 1) + "Q" + " ";
-            moves +=  to_string(j) + to_string(j) + to_string(i)+ to_string(i + 1) + "R" + " ";
-            moves +=  to_string(j) + to_string(j) + to_string(i)+ to_string(i + 1) + "B" + " ";
-            moves +=  to_string(j) + to_string(j) + to_string(i)+ to_string(i + 1) + "K" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "Q" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "R" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "B" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "K" + " ";
         }
 
         // Capturas diagonales
         else if (j>0 && i <6 && static_cast<int>(tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero[i + 1][j - 1]) > 96) {
-            moves += to_string(j) + to_string(j -1) + to_string(i)+ to_string(i + 1)+ " ";
+            moves += to_string(j) + to_string(i) + to_string(i)+ to_string(i + 1)+ " ";
         }
         else if (j <7 && i <6&& static_cast<int>(tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero[i + 1][j + 1]) > 96) {
-            moves += to_string(j) + to_string(j + 1) + to_string(i)+ to_string(i + 1)+ " "; // Captura derecha
+            moves += to_string(j) + to_string(i)+ to_string(j + 1) + to_string(i + 1)+ " "; // Captura derecha
         }
         //Capturas diagonales y coronando
         else if (j>0 && i == 6 && static_cast<int>(tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero[i + 1][j - 1]) > 96) {
-            moves +=  to_string(j) + to_string(j - 1) + to_string(i)+ to_string(i + 1) + "Q" + " ";
-            moves +=  to_string(j) + to_string(j - 1) + to_string(i)+ to_string(i + 1) + "R" + " ";
-            moves +=  to_string(j) + to_string(j - 1) + to_string(i)+ to_string(i + 1) + "B" + " ";
-            moves +=  to_string(j) + to_string(j - 1) + to_string(i)+ to_string(i + 1) + "K" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "Q" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "R" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "B" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "K" + " ";
         }
         else if (j <7 && i == 6 &&static_cast<int>(tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero[i + 1][j + 1]) > 96) {
-            moves +=  to_string(j) + to_string(j + 1) + to_string(i)+ to_string(i + 1) + "Q" + " ";
-            moves +=  to_string(j) + to_string(j + 1) + to_string(i)+ to_string(i + 1) + "R" + " ";
-            moves +=  to_string(j) + to_string(j + 1) + to_string(i)+ to_string(i + 1) + "B" + " ";
-            moves +=  to_string(j) + to_string(j + 1) + to_string(i)+ to_string(i + 1) + "K" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "Q" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "R" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "B" + " ";
+            moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "K" + " ";
         }
 
 
@@ -771,10 +771,20 @@ public:
     string getRookLegalMoves(bool color, int i, int j){
         if(color){
             //mirara la izqda
-            string start = to_string(j) + "0" + to_string(i) + "0";
             int y = i;
             int x = j - 1;
-            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x] > )
+            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string[x] + to_string(i);
+
+
+                }
+                x--;
+
+            }
             //mirar a la derecha
 
             //mirar a arriba
@@ -834,7 +844,7 @@ public:
                 }
             }
         }
-        return "";
+        return legalMoves;
     }
     bool isCheckMate(bool color){
         return false;
@@ -984,8 +994,8 @@ public:
 
     }
 
-};
 
+};
 
 // Función para descomponer la jugada y retornar las coordenadas
     std::tuple<int, int, int, int> descomponerJugada(const std::string& move) {
@@ -1068,7 +1078,8 @@ void actualGame(TableroAjedrez& tablero_principal){
 }
 
 
-int main() {
+
+int main(){
     TableroAjedrez tablero_principal;
     actualGame(tablero_principal);
     return 0;
