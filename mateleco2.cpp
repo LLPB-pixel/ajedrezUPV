@@ -707,9 +707,9 @@ public:
         //devuelve true si es ilegal
         return true;
     }
-    bool estaDentroDelTablero(int i, int j) {
-    return i >= 0 && i < 8 && j >= 0 && j < 8;
-}
+    bool isInBounds(int x, int y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
 
     // x1, x2, y1, y2 -> x1y1x2y2
     string getPawnLegalMoves(bool color, int i, int j) {
@@ -760,7 +760,7 @@ public:
         return moves;
     } else { // Peón negro
         // Movimiento de 1 casilla hacia adelante
-        if (estaDentroDelTablero(i - 1, j) && tablero[i - 1][j] == 0) {
+        if (isInBounds(i - 1, j) && tablero[i - 1][j] == 0) {
             moves += to_string(i - 1) + to_string(j) + " "; // Movimiento legal
             // Movimiento de 2 casillas hacia adelante si está en la fila inicial
             if (i == 6 && tablero[i - 2][j] == 0) {
@@ -768,10 +768,10 @@ public:
             }
         }
         // Capturas diagonales
-        if (estaDentroDelTablero(i - 1, j - 1) && tablero[i - 1][j - 1] > 0) {
+        if (isInBounds(i - 1, j - 1) && tablero[i - 1][j - 1] > 0) {
             moves += to_string(i - 1) + to_string(j - 1) + " "; // Captura izquierda
         }
-        if (estaDentroDelTablero(i - 1, j + 1) && tablero[i - 1][j + 1] > 0) {
+        if (isInBounds(i - 1, j + 1) && tablero[i - 1][j + 1] > 0) {
             moves += to_string(i - 1) + to_string(j + 1) + " "; // Captura derecha
         }
         return moves;
@@ -781,8 +781,43 @@ public:
     string getBishopLegalMoves(bool color, int i, int j){
         return "";
     }
+
+
+
+
     string getKnightLegalMoves(bool color, int i, int j){
-        return "";
+        string LegalMoves = "";
+        int posiblesSaltos[8][2] = {
+            {j + 2, i + 1}, // x | y
+            {j + 2, i - 1},
+            {j - 2, i + 1},
+            {j - 2, i - 1},
+            {j + 1, i + 2},
+            {j + 1, i - 2},
+            {j - 1, i + 2},
+            {j - 1, i - 2}
+            };
+        if(color){
+            for (int i = 0; i < 8; i++){
+                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
+                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 65 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 90){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
+                    }
+                }
+            }
+        }
+        else{
+            for (int i = 0; i < 8; i++){
+                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
+                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 96 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 123){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
+                    }
+                }
+            }
+        }
+
+        return LegalMoves;
+
     }
     string getRookLegalMoves(bool color, int i, int j){
         string Legalmoves;
@@ -920,8 +955,6 @@ public:
                 }
                 else{
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
-
-
                 }
                 y--;
                 Legalmoves += Legalmove;
