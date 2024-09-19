@@ -1229,10 +1229,7 @@ void actualGame(TableroAjedrez& tablero_principal){
         int xi, yi, xf, yf;
 
         std::tie(xi, yi, xf, yf) = descomponerJugada(moove);
-        cout<< xi<<'\n';
-        cout<< yi<<'\n';
-        cout<< xf<<'\n';
-        cout<< yf<<'\n';
+
         if(tablero_principal.isSuchMovePseudoLegal(moove, xi, yi, xf, yf)){
             TableroAjedrez tablero_sec = tablero_principal;
             tablero_sec.makeMove(moove, xi, yi, xf, yf);
@@ -1241,7 +1238,7 @@ void actualGame(TableroAjedrez& tablero_principal){
             if (tablero_sec.white_turn){
                 yk = tablero_sec.cordReyes[0][0];
                 xk = tablero_sec.cordReyes[0][1];
-                if(!tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                if(!tablero_sec.isKingInCheck(tablero_principal.white_turn, xk, yk, xk, yk)){
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
                     return actualGame(tablero_principal);
                 }
