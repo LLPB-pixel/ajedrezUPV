@@ -801,66 +801,24 @@ public:
     }
 
     }
-    string getBishopLegalMoves(bool color, int i, int j){
-        return "";
-    }
-
-
-
-
-    string getKnightLegalMoves(bool color, int i, int j){
-        string LegalMoves = "";
-        int posiblesSaltos[8][2] = {
-            {j + 2, i + 1}, // x | y
-            {j + 2, i - 1},
-            {j - 2, i + 1},
-            {j - 2, i - 1},
-            {j + 1, i + 2},
-            {j + 1, i - 2},
-            {j - 1, i + 2},
-            {j - 1, i - 2}
-            };
-        if(color){
-            for (int i = 0; i < 8; i++){
-                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
-                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 65 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 90){
-                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
-                    }
-                }
+    string getBishopLegalMoves(bool color, int i, int j) {
+    // Direcciones de movimiento del alfil (diagonales)
+    string LegalMoves;
+    if(color){
+        int y = i;
+        int x = j - 1;
+        while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+             if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+                break;
             }
-        }
-        else{
-            for (int i = 0; i < 8; i++){
-                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
-                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 96 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 123){
-                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
-                    }
-                }
+            else{
+                Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+
+
             }
-        }
-
-        return LegalMoves;
-
-    }
-    string getRookLegalMoves(bool color, int i, int j){
-        string Legalmoves;
-        string Legalmove;
-        if(color){
-            //mirara la izqda
-            int y = i;
-            int x = j - 1;
-            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
-                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
-                    break;
-                }
-                else{
-                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
-
-
-                }
-                x--;
-                Legalmoves += Legalmove;
+            x--;
+            Legalmoves += Legalmove;
 
             }
             //mirar a la derecha
@@ -913,6 +871,121 @@ public:
                 y--;
                 Legalmoves += Legalmove;
 
+            }    
+    }
+    else{
+    }
+    
+    return result;
+    }
+
+
+
+    string getKnightLegalMoves(bool color, int i, int j){
+        string LegalMoves = "";
+        int posiblesSaltos[8][2] = {
+            {j + 2, i + 1}, // x | y
+            {j + 2, i - 1},
+            {j - 2, i + 1},
+            {j - 2, i - 1},
+            {j + 1, i + 2},
+            {j + 1, i - 2},
+            {j - 1, i + 2},
+            {j - 1, i - 2}
+            };
+        if(color){
+            for (int i = 0; i < 8; i++){
+                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
+                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 65 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 90){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
+                    }
+                }
+            }
+        }
+        else{
+            for (int i = 0; i < 8; i++){
+                if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
+                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 96 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 123){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
+                    }
+                }
+            }
+        }
+
+        return LegalMoves;
+
+    }
+    string getRookLegalMoves(bool color, int i, int j){
+        string Legalmoves;
+        string Legalmove;
+        if(color){
+            //mirara la izqda
+            int y = i;
+            int x = j - 1;
+            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+                    break;
+                }
+                else{
+                    Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+
+
+                }
+                x--;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar a la derecha
+            y = i;
+            x = j + 1;
+            while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+
+
+                }
+                x++;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar a arriba
+            y = i + 1;
+            x = j;
+            while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+
+
+                }
+                y++;
+                Legalmoves += Legalmove;
+
+            }
+            //mirar abajo
+            y = i - 1;
+            x = j;
+            while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+                    break;
+                }
+                else{
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
+
+
+                }
+                y--;
+                Legalmoves += Legalmove;
+
             }
         }
 
@@ -922,11 +995,11 @@ public:
             int x = j - 1;
             while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
                 if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
                 else{
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
 
 
                 }
@@ -939,11 +1012,11 @@ public:
             x = j + 1;
             while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
                 if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
                 else{
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
 
 
                 }
@@ -956,11 +1029,11 @@ public:
             x = j;
             while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
                 if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
                 else{
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
 
 
                 }
@@ -973,11 +1046,11 @@ public:
             x = j;
             while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
                 if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
                 else{
-                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i);
+                    string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                 }
                 y--;
                 Legalmoves += Legalmove;
