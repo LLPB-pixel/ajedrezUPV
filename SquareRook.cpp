@@ -186,11 +186,13 @@ public:
         }
     }
     bool isSuchBishopMoveLegal(int x1, int y1, int x2, int y2){
+        cout << "flag bishopmovelegal";
         if (abs(x1-x2) == abs(y1-y2)){
             //comprobar que no se ha saltado ninguan pieza.
             if (x1 > x2){
                if(y1 > y2){
-                    for(int i = 1; i = abs(x1-x2)-1; i++){
+                    cout << "flag abajo a la izda";
+                    for(int i = 1; i <= abs(x1-x2)-1; i++){
                         if (tablero[y2+i][x2 +i] != '.'){
                             return false;
 
@@ -198,7 +200,8 @@ public:
                     }
                }
                else{
-                    for(int i = 1; i = abs(x1-x2)-1; i++){
+                    cout << "flag arriba a la izqda";
+                    for(int i = 1; i <= abs(x1-x2)-1; i++){
                         if (tablero[y1+i][x2 +i] != '.'){
                             return false;
 
@@ -207,8 +210,10 @@ public:
                }
             }
             else{
+
                 if(y1 > y2){
-                for(int i = 1; i = abs(x1-x2)-1; i++){
+                cout << "flag abajo a la derecha";
+                for(int i = 1; i <= abs(x1-x2)-1; i++){
                         if (tablero[y2+i][x1 +i] != '.'){
                             return false;
 
@@ -216,7 +221,8 @@ public:
                     }
                }
                else{
-                    for(int i = 1; i = abs(x1-x2)-1; i++){
+                    cout << "flag arriba a la derecha";
+                    for(int i = 1; i <= abs(x1-x2)-1; i++){
                         if (tablero[y1+i][x1 +i] != '.'){
                             return false;
 
@@ -233,6 +239,7 @@ public:
     }
     bool isSuchQueenMoveLegal(int x1, int y1, int x2, int y2){
         if (abs(x1 - x2) == abs(y1-y2)){
+            cout << "flag queenmovelegal";
             return isSuchBishopMoveLegal(x1, y1, x2, y2);
         }
         else {
@@ -525,7 +532,7 @@ public:
             //comprobamos hacia arriba
             xb1 = xb;
             yb1 = yb + 1;
-             while ((xb1 <= 7)&&(yb1 <= 7)&& (static_cast<int>(tablero[yb1][xb1]> 96))) {
+            while ((xb1 <= 7)&&(yb1 <= 7)&& (static_cast<int>(tablero[yb1][xb1]> 96))) {
                 if (tablero[yb1][xb1] == 'r'|| tablero[yb1][xb1] == 'q'){
                     return true;
                 }
@@ -578,9 +585,7 @@ public:
             int xn1 = xn + 1;
             int yn1 = yn + 1;
             //caso jaque de peon
-            if (tablero[yn1][xn1] == 'P'){
-                return true;
-            }
+
             //buscamos hacia arriba a la derecha
             while ((xn1 <= 7)&&(yn1 <= 7)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'))) {
                 if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
@@ -607,7 +612,9 @@ public:
 
             xn1 = xn + 1;
             yn1 = yn - 1;
-
+            if (tablero[yn1][xn1] == 'P'){
+                return true;
+            }
             //buscamos un alfil abajo a la derecha
             while ((xn1 <= 7)&&(yn1 >= 0)&& (((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q')))) {
                 if (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'){
@@ -618,6 +625,10 @@ public:
             }
             xn1 = xn - 1;
             yn1 = yn - 1;
+
+            if (tablero[yn1][xn1] == 'P'){
+                return true;
+            }
             //buscamos un alfil abajo a la izqda
 
             while ((xn1 >= 0)&&(yn1 >= 0)&& ((tablero[yn1][xn1] == '.')|| (tablero[yn1][xn1] == 'B'|| tablero[yn1][xn1] == 'Q'))) {
@@ -991,7 +1002,7 @@ public:
             //mirara la izqda
             int y = i;
             int x = j - 1;
-            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+            while(x >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
                 if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
                     Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
@@ -1042,7 +1053,7 @@ public:
             //mirar abajo
             y = i - 1;
             x = j;
-            while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
+            while(y >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
                 if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
@@ -1062,7 +1073,7 @@ public:
             //mirara la izqda
             int y = i;
             int x = j - 1;
-            while(x>0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
+            while(x >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
                 if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
@@ -1377,34 +1388,38 @@ void actualGame(TableroAjedrez& tablero_principal){
             tablero_sec.makeMove(moove, xi, yi, xf, yf);
             int xk, yk;
 
-            if (tablero_sec.white_turn){
+            if (tablero_principal.white_turn){
                 yk = tablero_sec.cordReyes[0][0];
                 xk = tablero_sec.cordReyes[0][1];
+                cout << "pseudo legal"<<'\n';
                 if(!tablero_sec.isKingInCheck(tablero_principal.white_turn, xk, yk, xk, yk)){
+                    cout << "legal" << '\n';
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
                     return actualGame(tablero_principal);
                 }
                 else{
-                    cout << "illegal move youre walking into check";
+                    cout << "illegal move youre walking into check"<<'\n';
                     return actualGame(tablero_principal);
                 }
             }
             else{
                 yk = tablero_sec.cordReyes[1][0];
                 xk = tablero_sec.cordReyes[1][1];
-                if(!tablero_sec.isKingInCheck(tablero_sec.white_turn, xk, yk, xk, yk)){
+                cout << "pseudo legal"<<'\n';
+                if(!tablero_sec.isKingInCheck(tablero_principal.white_turn, xk, yk, xk, yk)){
+                    cout << "legal" << '\n';
                     tablero_principal.makeMove(moove, xi, yi, xf, yf);
                     return actualGame(tablero_principal);
                 }
                 else{
-                    cout << "illegal move youre walking into check";
+                    cout << "illegal move youre walking into check"<< '\n';
                     return actualGame(tablero_principal);
                 }
             }
 
         }
         else{
-            cout << "illegal move";
+            cout << "illegal move"<<'\n';
             return actualGame(tablero_principal);
         }
 
