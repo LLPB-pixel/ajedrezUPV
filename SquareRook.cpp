@@ -79,11 +79,34 @@ public:
 
     // metodo para mostrar el tablero. Haremos que muestre el trablero con las blancas abajo para no rayarnos.
     void display() {
-        for (int i = 7; i > -1; i--) {
+        /*for (int i = 7; i > -1; i--) {
             for (int j = 0; j < 8; j++) {
                 cout << tablero[i][j] << ' ';
             }
             cout << endl;
+        }*/
+        cout << "  a b c d e f g h" << endl;
+
+        for (int i = 7; i > -1; i--) {
+            cout << i + 1 << " "; // Imprimir número de fila
+            for (int j = 0; j < 8; j++) {
+                switch (tablero[i][j]) {
+                    case 'r': cout << "\u265C "; break; // Torre negra
+                    case 'n': cout << "\u265E "; break; // Caballo negro
+                    case 'b': cout << "\u265D "; break; // Alfil negro
+                    case 'q': cout << "\u265B "; break; // Reina negra
+                    case 'k': cout << "\u265A "; break; // Rey negro
+                    case 'p': cout << "\u265F "; break; // Peón negro
+                    case 'R': cout << "\u2656 "; break; // Torre blanca
+                    case 'N': cout << "\u2658 "; break; // Caballo blanco
+                    case 'B': cout << "\u2657 "; break; // Alfil blanco
+                    case 'Q': cout << "\u2655 "; break; // Reina blanca
+                    case 'K': cout << "\u2654 "; break; // Rey blanco
+                    case 'P': cout << "\u2659 "; break; // Peón blanco
+                    default: cout << "  "; break;  // Espacio vacío
+                }
+            }
+            cout << endl; // Nueva línea al final de cada fila
         }
     }
 
