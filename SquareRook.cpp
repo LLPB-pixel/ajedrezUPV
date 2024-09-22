@@ -85,7 +85,14 @@ public:
             }
             cout << endl;
         }*/
-        cout << "  a b c d e f g h" << endl;
+
+        if (white_turn) {
+            cout << "Turno blancas";
+        } else {
+            cout << "Turno negras";
+        }
+
+        cout << "\n  a b c d e f g h" << endl;
 
         for (int i = 7; i > -1; i--) {
             cout << i + 1 << " "; // Imprimir número de fila
@@ -1306,13 +1313,13 @@ public:
             }
         }
         //coronacion blanca
-        else if(piece == 'P' && x1 == 6 && x2 == 7){
+        else if(piece == 'P' && y1 == 6 && y2 == 7){
             char coronacion = move[4]; // ultima letra de la jugada
             tablero[y2][x2] = coronacion;
             tablero[y1][x1] = '.';
         }
         // coronacion negra
-        else if(piece == 'p' && x1 == 1 && x2 == 0){
+        else if(piece == 'p' && y1 == 1 && y2 == 0){
             char coronacion = move[4]; // ultima letra de la jugada
             tablero[y2][x2] = coronacion;
             tablero[y1][x1] = '.';
@@ -1376,7 +1383,7 @@ public:
 // Función para descomponer la jugada y retornar las coordenadas
     std::tuple<int, int, int, int> descomponerJugada(const std::string& move) {
 
-    if (move.size() != 4) {
+    if (move.size() != 4 && move.size() != 5) { // Se agrega temporalmente move.size()!=5 para permitir coronaciones.
         throw std::invalid_argument("La jugada debe tener 4 caracteres.");
     }
 
