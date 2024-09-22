@@ -142,7 +142,12 @@ public:
         // Una casilla, cualquier dirección
         if (deltaX <= 1 && deltaY <= 1) {
             // Comprobamos que no haya una pieza propia
-            if (tablero[y2][x2] == '.') {
+            std::string piezas_negras = "prnbq.";
+            std::string piezas_blancas = "PRNBQ.";
+
+            if (king == 'k' && piezas_blancas.find(tablero[y2][x2]) != std::string::npos) {
+                return true;
+            } else if (king == 'K' && piezas_negras.find(tablero[y2][x2]) != std::string::npos) {
                 return true;
             }
         }
