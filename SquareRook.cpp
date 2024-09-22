@@ -193,7 +193,7 @@ public:
                if(y1 > y2){
                     cout << "flag abajo a la izda";
                     for(int i = 1; i <= abs(x1-x2)-1; i++){
-                        if (tablero[y2+i][x2 +i] != '.'){
+                        if (tablero[x1-i][y1-i] != '.'){
                             return false;
 
                         }
@@ -202,9 +202,8 @@ public:
                else{
                     cout << "flag arriba a la izqda";
                     for(int i = 1; i <= abs(x1-x2)-1; i++){
-                        if (tablero[y1+i][x2 +i] != '.'){
+                        if (tablero[x1-i][y1+i] != '.'){
                             return false;
-
                         }
                     }
                }
@@ -214,7 +213,7 @@ public:
                 if(y1 > y2){
                 cout << "flag abajo a la derecha";
                 for(int i = 1; i <= abs(x1-x2)-1; i++){
-                        if (tablero[y2+i][x1 +i] != '.'){
+                        if (tablero[x1+i][y1-i] != '.'){
                             return false;
 
                         }
@@ -223,7 +222,7 @@ public:
                else{
                     cout << "flag arriba a la derecha";
                     for(int i = 1; i <= abs(x1-x2)-1; i++){
-                        if (tablero[y1+i][x1 +i] != '.'){
+                        if (tablero[x1+i][y1+i] != '.'){
                             return false;
 
                         }
