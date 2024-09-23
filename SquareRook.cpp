@@ -1181,8 +1181,29 @@ public:
         return getBishopLegalMoves(color, i, j) + getRookLegalMoves(color, i, j);
     }
     string getKingLegalMoves(bool color, int i, int j){
-        return "";
-    }
+        int casillas[8][2] = {
+            {i + 1, j + 1},
+            {i + 1, j    },
+            {i + 1, j - 1},
+            {i    , j + 1},
+            {i    , j - 1},
+            {i - 1, j + 1},
+            {i - 1, j    },
+            {i - 1, j - 1},
+
+        };
+        if(color){
+            for(int k = 0, k < 8, k++){
+                if(isInBounds(casillas[k][0], casillas[k][1])){
+                    if(isKingInCheck(color, cordReyes[0][1], cordReyes[0][1], 0, 0))
+                }
+            }
+        }
+        else{
+
+        }
+
+        return "";}
 
     string getLegalMoves(bool color){
         string legalMoves = "";
