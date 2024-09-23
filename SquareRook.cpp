@@ -188,20 +188,20 @@ public:
         // Enroque
         else if (deltaX == 2 && deltaY == 0) {
             if (king == 'K' && !whiteKingMoved) {
-                if (x2 == 6 && tablero[7][7] == 'R'&& !whiteRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&& isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
+                if (x2 == 6 && tablero[0][7] == 'R'&& !whiteRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&& !isKingInCheck(true, x1, y1, 0, 0) && !isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque corto blancas
                     return true;
-                } else if (x2 == 2 && tablero[7][0] == 'R'&& !whiteRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&&isKingInCheck(true, x1, y1, 0, 0) && isKingInCheck(true, x1 + aux, y1, 0, 0)) {
+                } else if (x2 == 2 && tablero[0][0] == 'R'&& !whiteRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&&!isKingInCheck(true, x1, y1, 0, 0) && !isKingInCheck(true, x1 + aux, y1, 0, 0)) {
                     // Enroque largo blancas
                     return true;
                 }else{
                     return false;
                 }
             } else if (king == 'k' && !blackKingMoved) {
-                if (x2 == 6 && tablero[0][7] == 'r'&&!blackRookMoved[1] && tablero[0][5] == '.' && tablero[0][6] == '.'&&isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
+                if (x2 == 6 && tablero[7][7] == 'r'&&!blackRookMoved[1] && tablero[7][5] == '.' && tablero[7][6] == '.'&&!isKingInCheck(false, x1, y1, 0, 0) && !isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque corto negras
                     return true;
-                } else if (x2 == 2 && tablero[0][0] == 'r' && !blackRookMoved[0] && tablero[0][1] == '.' && tablero[0][2] == '.' && tablero[0][3] == '.'&& isKingInCheck(false, x1, y1, 0, 0) && isKingInCheck(false, x1 + aux, y1, 0, 0)) {
+                } else if (x2 == 2 && tablero[7][0] == 'r' && !blackRookMoved[0] && tablero[7][1] == '.' && tablero[7][2] == '.' && tablero[7][3] == '.'&& !isKingInCheck(false, x1, y1, 0, 0) && !isKingInCheck(false, x1 + aux, y1, 0, 0)) {
                     // Enroque largo negras
                     return true;
                 } else{
