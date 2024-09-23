@@ -307,6 +307,7 @@ public:
                         int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = ultimajugada[3] - 49;
                         if ((ulty2 == 4) && (ultx2 == x2 && ulty1 == 6)){
+                            tablero[4][x2] = '.'; //Eliminamos el peón (en capturas al paso)
                             return true;
                         }
                         else{
@@ -360,6 +361,7 @@ public:
                         int ultx2 = ultimajugada[2] - 97;
                         int ulty2 = ultimajugada[3] - 49;
                         if ((ulty2 == 3) && (ultx2 == x2) && (ulty1 == 1)){
+                            tablero[3][x2] = '.'; //Eliminamos el peón (en capturas al paso)
                             return true;
                         }
                         else{
@@ -1274,9 +1276,7 @@ public:
         for (int i = 7; i > -1; i--){
             for(int j = 0; j< 8; j++){
                 if(tablero[i][j] != '.'){
-                    string p = "";          // Inicializamos un string vacío
-                    p.push_back(tablero[i][j]); // Añadimos el carácter al string 'p'
-                    FEN = FEN + p;
+                    FEN = FEN + tablero[i][j];
                 }
                 else{
                     int aux = 0;
@@ -1284,6 +1284,7 @@ public:
                         aux++;
                         j++;
                     }
+                    j--; // Establecemos el índice correcto
                     string num = to_string(aux);
                     FEN = FEN + num;
                 }
