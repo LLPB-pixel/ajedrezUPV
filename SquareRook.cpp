@@ -2,6 +2,9 @@
 #include <string>
 #include <cmath>
 #include <tuple>
+#ifdef _WIN32
+    #include <windows.h> // Solo necesario en Windows para Unicode
+#endif
 
 using namespace std;
 
@@ -1464,6 +1467,10 @@ void actualGame(TableroAjedrez& tablero_principal){
 
 
 int main(){
+    #ifdef _WIN32
+        // Forzar la página de códigos a UTF-8 en Windows
+        SetConsoleOutputCP(CP_UTF8);
+    #endif
     TableroAjedrez tablero_principal;
     actualGame(tablero_principal);
     return 0;
