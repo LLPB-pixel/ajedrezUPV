@@ -1181,6 +1181,7 @@ public:
         return getBishopLegalMoves(color, i, j) + getRookLegalMoves(color, i, j);
     }
     string getKingLegalMoves(bool color, int i, int j){
+        string LegalMoves;
         int casillas[8][2] = {
             {i + 1, j + 1},
             {i + 1, j    },
@@ -1193,17 +1194,26 @@ public:
 
         };
         if(color){
-            for(int k = 0, k < 8, k++){
+            for(int k = 0; k < 8; k++){
                 if(isInBounds(casillas[k][0], casillas[k][1])){
-                    if(isKingInCheck(color, cordReyes[0][1], cordReyes[0][1], 0, 0))
+                    if(!isKingInCheck(color, cordReyes[0][1], cordReyes[0][0], 0, 0) && (tablero[i][j] == '.' || (tablero[i][j] > 'a' && tablero[i][j] < 'z'))){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
+                    }
                 }
             }
         }
         else{
-
+            for(int k = 0; k < 8; k++){
+                if(isInBounds(casillas[k][0], casillas[k][1])){
+                    if(!isKingInCheck(color, 0, 0, cordReyes[1][1], cordReyes[1][0]) && (tablero[i][j] == '.' || (tablero[i][j] > 'A' && tablero[i][j] < 'Z'))){
+                        LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
+                    }
+                }
+            }
         }
 
-        return "";}
+        return LegalMoves;
+        }
 
     string getLegalMoves(bool color){
         string legalMoves = "";
