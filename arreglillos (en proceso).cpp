@@ -911,24 +911,24 @@ bool detectarIlegales(bool color){
     }
 
     // x1, x2, y1, y2 -> x1y1x2y2
-    string getPawnLegalMoves(bool color, int i, int j, char (&tablero)[8][8]) {
+    string getPawnLegalMoves(bool color, int i, int j, TableroAjedrez &tablero) {
 
     //Falta detectar ilegales
     string moves = "";
 
     if (color) { // Peón blanco
         // Movimiento de 1 casilla hacia adelante
-        if (tablero[i + 1][j] == '.' && i + 1 != 7) {
+        if (tablero.tablero[i + 1][j] == '.' && i + 1 != 7) {
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1)+ " ";
 
 
             // Movimiento de 2 casillas hacia adelante si está en la fila inicial
-            if (i == 1 && tablero[i + 2][j] == '.') {
+            if (i == 1 && tablero.tablero[i + 2][j] == '.') {
                 moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 2)+ " ";
             }
         }
         //coronaciones
-        else if(tablero[i + 1][j] == '.' && i + 1 == 7){
+        else if(tablero.tablero[i + 1][j] == '.' && i + 1 == 7){
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i + 1) + "B" + " ";
@@ -936,20 +936,20 @@ bool detectarIlegales(bool color){
         }
 
         // Capturas diagonales
-        if (j >= 0 && i <= 6 && static_cast<int>(tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero[i + 1][j - 1]) > 96) {
+        if (j >= 0 && i <= 6 && static_cast<int>(tablero.tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero.tablero[i + 1][j - 1]) > 96) {
             moves += to_string(j) + to_string(i) + to_string(i)+ to_string(i + 1)+ " ";
         }
-        if (j <= 7 && i <= 6&& static_cast<int>(tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero[i + 1][j + 1]) > 96) {
+        if (j <= 7 && i <= 6&& static_cast<int>(tablero.tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero.tablero[i + 1][j + 1]) > 96) {
             moves += to_string(j) + to_string(i)+ to_string(j + 1) + to_string(i + 1)+ " "; // Captura derecha
         }
         //Capturas diagonales y coronando
-        if (j >= 0 && i == 6 && static_cast<int>(tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero[i + 1][j - 1]) > 96) {
+        if (j >= 0 && i == 6 && static_cast<int>(tablero.tablero[i + 1][j - 1]) < 123 && static_cast<int>(tablero.tablero[i + 1][j - 1]) > 96) {
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "B" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i + 1) + "K" + " ";
         }
-        if (j <= 7 && i == 6 &&static_cast<int>(tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero[i + 1][j + 1]) > 96) {
+        if (j <= 7 && i == 6 &&static_cast<int>(tablero.tablero[i + 1][j + 1]) < 123 && static_cast<int>(tablero.tablero[i + 1][j + 1]) > 96) {
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i + 1) + "B" + " ";
@@ -958,17 +958,17 @@ bool detectarIlegales(bool color){
 
         return moves;
     } else { // Peón negro
-        if (tablero[i - 1][j] == '.' && i != 1) {
+        if (tablero.tablero[i - 1][j] == '.' && i != 1) {
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i - 1)+ " ";
 
 
             // Movimiento de 2 casillas hacia adelante si está en la fila inicial
-            if (i == 6 && tablero[i - 2][j] == '.') {
+            if (i == 6 && tablero.tablero[i - 2][j] == '.') {
                 moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i - 2)+ " ";
             }
         }
         //coronaciones
-        else if(tablero[i - 1][j] == '.' && i == 1){
+        else if(tablero.tablero[i - 1][j] == '.' && i == 1){
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i - 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i - 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j)+ to_string(i - 1) + "B" + " ";
@@ -976,20 +976,20 @@ bool detectarIlegales(bool color){
         }
 
         // Capturas diagonales
-        if (j >= 0 && i >= 1 && static_cast<int>(tablero[i - 1][j - 1]) < 'Z' && static_cast<int>(tablero[i - 1][j - 1]) > 'A') {
+        if (j >= 0 && i >= 1 && static_cast<int>(tablero.tablero[i - 1][j - 1]) < 'Z' && static_cast<int>(tablero.tablero[i - 1][j - 1]) > 'A') {
             moves += to_string(j) + to_string(i) + to_string(i) + to_string(i - 1) + " ";
         }
-        if (j <= 7 && i >= 1 && static_cast<int>(tablero[i - 1][j + 1]) < 'Z' && static_cast<int>(tablero[i - 1][j + 1]) > 'A') {
+        if (j <= 7 && i >= 1 && static_cast<int>(tablero.tablero[i - 1][j + 1]) < 'Z' && static_cast<int>(tablero.tablero[i - 1][j + 1]) > 'A') {
             moves += to_string(j) + to_string(i)+ to_string(j + 1) + to_string(i - 1)+ " "; // Captura derecha
         }
         //Capturas diagonales y coronando
-        if (j >= 0 && i == 1 && static_cast<int>(tablero[i - 1][j - 1]) < 'Z' && static_cast<int>(tablero[i - 1][j - 1]) > 'A') {
+        if (j >= 0 && i == 1 && static_cast<int>(tablero.tablero[i - 1][j - 1]) < 'Z' && static_cast<int>(tablero.tablero[i - 1][j - 1]) > 'A') {
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i - 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i - 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i - 1) + "B" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j - 1)+ to_string(i - 1) + "K" + " ";
         }
-        if (j <= 7 && i == 6 &&static_cast<int>(tablero[i - 1][j + 1]) < 'Z' && static_cast<int>(tablero[i - 1][j + 1]) > 'A') {
+        if (j <= 7 && i == 6 &&static_cast<int>(tablero.tablero[i - 1][j + 1]) < 'Z' && static_cast<int>(tablero.tablero[i - 1][j + 1]) > 'A') {
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i - 1) + "Q" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i - 1) + "R" + " ";
             moves +=  to_string(j) + to_string(i) + to_string(j + 1) + to_string(i - 1) + "B" + " ";
@@ -1000,15 +1000,15 @@ bool detectarIlegales(bool color){
     }
 
     }
-    string getBishopLegalMoves(bool color, int i, int j, char (&tablero)[8][8]) {
+    string getBishopLegalMoves(bool color, int i, int j,TableroAjedrez &tablero) {
     // Direcciones de movimiento del alfil (diagonales)
     string LegalMoves;
     if(color){
         // Abajo a la izqda
         int y = i - 1;
         int x = j - 1;
-        while(x >= 0 && y >= 0&& (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-             if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+        while(x >= 0 && y >= 0&& (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+             if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                 LegalMoves += to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                 break;
             }
@@ -1024,8 +1024,8 @@ bool detectarIlegales(bool color){
             //abajo a la derecha
             y = i - 1;
             x = j + 1;
-            while(x<8 && y >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(x<8 && y >= 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1041,8 +1041,8 @@ bool detectarIlegales(bool color){
             //mirar a arriba a la derecha
             y = i + 1;
             x = j + 1;
-            while(y < 8 && x < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(y < 8 && x < 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1058,8 +1058,8 @@ bool detectarIlegales(bool color){
             //mirar arriba a la derecha
             y = i + 1;
             x = j - 1;
-            while(y < 8 && x >= 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(y < 8 && x >= 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1078,8 +1078,8 @@ bool detectarIlegales(bool color){
         // Abajo a la izqda
         int y = i - 1;
         int x = j - 1;
-        while(x >= 0 && y >= 0&& (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'))){
-             if(static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'){
+        while(x >= 0 && y >= 0&& (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'))){
+             if(static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'){
                 LegalMoves += to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                 break;
             }
@@ -1095,8 +1095,8 @@ bool detectarIlegales(bool color){
             //abajo a la derecha
             y = i - 1;
             x = j + 1;
-            while(x<8 && y >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'))){
-                if(static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'){
+            while(x<8 && y >= 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1112,8 +1112,8 @@ bool detectarIlegales(bool color){
             //mirar a arriba a la derecha
             y = i + 1;
             x = j + 1;
-            while(y < 8 && x < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'))){
-                if(static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'){
+            while(y < 8 && x < 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1129,8 +1129,8 @@ bool detectarIlegales(bool color){
             //mirar arriba a la derecha
             y = i + 1;
             x = j - 1;
-            while(y < 8 && x >= 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'))){
-                if(static_cast<int>(tablero[y][x]) > 'A' && static_cast<int>(tablero[y][x]) < 'Z'){
+            while(y < 8 && x >= 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 'A' && static_cast<int>(tablero.tablero[y][x]) < 'Z'){
                     string LegalMoves = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1152,7 +1152,7 @@ bool detectarIlegales(bool color){
 
 
 
-    string getKnightLegalMoves(bool color, int i, int j, char (&tablero)[8][8]){
+    string getKnightLegalMoves(bool color, int i, int j, TableroAjedrez &tablero){
         string LegalMoves = "";
         int posiblesSaltos[8][2] = {
             {j + 2, i + 1}, // x | y
@@ -1167,7 +1167,7 @@ bool detectarIlegales(bool color){
         if(color){
             for (int i = 0; i < 8; i++){
                 if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
-                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 65 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 90){
+                    if(static_cast<int>(tablero.tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 65 && static_cast<int>(tablero.tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 90){
                         LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
                     }
                 }
@@ -1176,7 +1176,7 @@ bool detectarIlegales(bool color){
         else{
             for (int i = 0; i < 8; i++){
                 if(isInBounds(posiblesSaltos[i][0], posiblesSaltos[i][1])){
-                    if(static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 96 && static_cast<int>(tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 123){
+                    if(static_cast<int>(tablero.tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) < 96 && static_cast<int>(tablero.tablero[posiblesSaltos[i][1]][posiblesSaltos[i][0]]) > 123){
                         LegalMoves += to_string(j) + to_string(i) + to_string(posiblesSaltos[i][0]) + to_string(posiblesSaltos[i][1]) + " ";
                     }
                 }
@@ -1186,15 +1186,15 @@ bool detectarIlegales(bool color){
         return LegalMoves;
 
     }
-    string getRookLegalMoves(bool color, int i, int j, char (&tablero)[8][8]){
+    string getRookLegalMoves(bool color, int i, int j, TableroAjedrez &tablero){
         string Legalmoves;
         string Legalmove;
         if(color){
             //mirara la izqda
             int y = i;
             int x = j - 1;
-            while(x >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(x >= 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1210,8 +1210,8 @@ bool detectarIlegales(bool color){
             //mirar a la derecha
             y = i;
             x = j + 1;
-            while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(x<8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1227,8 +1227,8 @@ bool detectarIlegales(bool color){
             //mirar a arriba
             y = i + 1;
             x = j;
-            while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(y < 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1244,8 +1244,8 @@ bool detectarIlegales(bool color){
             //mirar abajo
             y = i - 1;
             x = j;
-            while(y >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123))){
-                if(static_cast<int>(tablero[y][x]) > 96 && static_cast<int>(tablero[y][x]) < 123){
+            while(y >= 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 96 && static_cast<int>(tablero.tablero[y][x]) < 123){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1264,8 +1264,8 @@ bool detectarIlegales(bool color){
             //mirara la izqda
             int y = i;
             int x = j - 1;
-            while(x >= 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
-                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+            while(x >= 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1281,8 +1281,8 @@ bool detectarIlegales(bool color){
             //mirar a la derecha
             y = i;
             x = j + 1;
-            while(x<8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
-                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+            while(x<8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1298,8 +1298,8 @@ bool detectarIlegales(bool color){
             //mirar a arriba
             y = i + 1;
             x = j;
-            while(y < 8 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
-                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+            while(y < 8 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1315,8 +1315,8 @@ bool detectarIlegales(bool color){
             //mirar abajo
             y = i - 1;
             x = j;
-            while(y > 0 && (tablero[y][x] == '.' || (static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90))){
-                if(static_cast<int>(tablero[y][x]) > 65 && static_cast<int>(tablero[y][x]) < 90){
+            while(y > 0 && (tablero.tablero[y][x] == '.' || (static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90))){
+                if(static_cast<int>(tablero.tablero[y][x]) > 65 && static_cast<int>(tablero.tablero[y][x]) < 90){
                     string Legalmove = to_string(j) + to_string(i) + to_string(x) + to_string(i) + " ";
                     break;
                 }
@@ -1331,10 +1331,10 @@ bool detectarIlegales(bool color){
         }
         return Legalmoves;
     }
-    string getQueenLegalMoves(bool color, int i, int j, char (&tablero)[8][8]){
-        return getBishopLegalMoves(color, i, j) + getRookLegalMoves(color, i, j);
+    string getQueenLegalMoves(bool color, int i, int j, TableroAjedrez &tablero){
+        return getBishopLegalMoves(color, i, j, tablero) + getRookLegalMoves(color, i, j, tablero);
     }
-    string getKingLegalMoves(bool color, int i, int j, char (&tablero)[8][8]){
+    string getKingLegalMoves(bool color, int i, int j, TableroAjedrez &tablero){
         string LegalMoves;
         int casillas[8][2] = {
             {i + 1, j + 1},
@@ -1350,7 +1350,7 @@ bool detectarIlegales(bool color){
         if(color){
             for(int k = 0; k < 8; k++){
                 if(isInBounds(casillas[k][0], casillas[k][1])){
-                    if(!isKingInCheck(color, cordReyes[0][1], cordReyes[0][0], 0, 0) && (tablero[i][j] == '.' || (tablero[i][j] > 'a' && tablero[i][j] < 'z'))){
+                    if(!isKingInCheck(color, cordReyes[0][1], cordReyes[0][0], 0, 0) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'a' && tablero.tablero[i][j] < 'z'))){
                         LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
                     }
                 }
@@ -1359,7 +1359,7 @@ bool detectarIlegales(bool color){
         else{
             for(int k = 0; k < 8; k++){
                 if(isInBounds(casillas[k][0], casillas[k][1])){
-                    if(!isKingInCheck(color, 0, 0, cordReyes[1][1], cordReyes[1][0]) && (tablero[i][j] == '.' || (tablero[i][j] > 'A' && tablero[i][j] < 'Z'))){
+                    if(!isKingInCheck(color, 0, 0, cordReyes[1][1], cordReyes[1][0]) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'A' && tablero.tablero[i][j] < 'Z'))){
                         LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
                     }
                 }
@@ -1369,7 +1369,7 @@ bool detectarIlegales(bool color){
         return LegalMoves;
         }
 
-    string getLegalMoves(bool color, char (&tablero)[8][8])){
+    string getLegalMoves(bool color, TableroAjedrez &tablero){
         string legalMoves = "";
         if(color){
             for(int i = 0; i <8; i++){
