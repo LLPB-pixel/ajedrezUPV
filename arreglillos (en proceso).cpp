@@ -1350,7 +1350,7 @@ bool detectarIlegales(bool color){
         if(color){
             for(int k = 0; k < 8; k++){
                 if(isInBounds(casillas[k][0], casillas[k][1])){
-                    if(!isKingInCheck(color, cordReyes[0][1], cordReyes[0][0], 0, 0) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'a' && tablero.tablero[i][j] < 'z'))){
+                    if(!tablero.isKingInCheck(color, tablero.cordReyes[0][1], tablero.cordReyes[0][0], 0, 0) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'a' && tablero.tablero[i][j] < 'z'))){
                         LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
                     }
                 }
@@ -1359,7 +1359,7 @@ bool detectarIlegales(bool color){
         else{
             for(int k = 0; k < 8; k++){
                 if(isInBounds(casillas[k][0], casillas[k][1])){
-                    if(!isKingInCheck(color, 0, 0, cordReyes[1][1], cordReyes[1][0]) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'A' && tablero.tablero[i][j] < 'Z'))){
+                    if(!tablero.isKingInCheck(color, 0, 0, tablero.cordReyes[1][1],tablero.cordReyes[1][0]) && (tablero.tablero[i][j] == '.' || (tablero.tablero[i][j] > 'A' && tablero.tablero[i][j] < 'Z'))){
                         LegalMoves += to_string(j) + to_string(i) + to_string(casillas[k][1]) + to_string(casillas[k][0]) + " ";
                     }
                 }
@@ -1374,7 +1374,7 @@ bool detectarIlegales(bool color){
         if(color){
             for(int i = 0; i <8; i++){
                 for(int j = 0; j <8; j++){
-                    switch(tablero[i][j]){
+                    switch(tablero.tablero[i][j]){
                         case 'P':
                             legalMoves += getPawnLegalMoves(color, i, j, tablero);
                         case 'B':
@@ -1394,7 +1394,7 @@ bool detectarIlegales(bool color){
         else{
             for(int i = 0; i <8; i++){
                 for(int j = 0; j <8; j++){
-                    switch(tablero[i][j]){
+                    switch(tablero.tablero[i][j]){
                         case 'p':
                             legalMoves += getPawnLegalMoves(color, i, j, tablero);
                         case 'b':
@@ -1513,3 +1513,4 @@ int main(){
     actualGame(tablero_principal);
     return 0;
 }
+
