@@ -1531,6 +1531,51 @@ void fenToBoard(const std::string& fen, char board[8][8]) {
     }
 }
 
+// Hace falta hacer una función que
+//1. encuentre los reyes y moddifique el array de sus coordenadas.
+// si la torre, rey, no está en su casilla inficial, se debe poner que se han movido
+
+void fenToAtributes(TableroAjedrez &tablero){
+    if(tablero.tablero[0][4] != 'K'){
+        tablero.whiteKingMoved = true;
+    }
+    if(tablero.tablero[7][4] != 'k'){
+        tablero.blackKingMoved = true;
+    }
+
+    for(int i = 0; i <8; i++){
+        for(int j = 0; j<8; j++){
+            switch(tablero.tablero[i][j]){
+                case 'K':
+                    tablero.cordReyes[0][0] = i;
+                    tablero.cordReyes[0][1] = j;
+                    break;
+                case 'k':
+                    tablero.cordReyes[1][0] = i;
+                    tablero.cordReyes[1][1] = j;
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+    if(tablero.tablero[0][0] != 'R'){
+        tablero.whiteRookMoved[0] = true;
+    }
+    if(tablero.tablero[0][7] != 'R'){
+        tablero.whiteRookMoved[1] = true;
+    }
+    if(tablero.tablero[7][0] != 'r'){
+        tablero.blackRookMoved[0] = true;
+    }
+    if(tablero.tablero[7][7] != 'r'){
+        tablero.blackRookMoved[1] = true;
+    }
+}
+
+
+
 
 
 int main(){
@@ -1538,10 +1583,17 @@ int main(){
         // Forzar la página de códigos a UTF-8 en Windows
         SetConsoleOutputCP(CP_UTF8);
     #endif
-    string fen = "3N2K1/p3P2P/pN2p3/3P2k1/1p1P4/3R1R2/4r2p/3q4";
+    string fen = "4Q3/2P5/pK6/5R1b/1N2P3/rk3PpP/1B1P4/1R6";
     TableroAjedrez tablero;
     fenToBoard(fen, tablero.tablero);
+    fenToAtributes(tablero);
     tablero.displayOld();
+    cout << "rey  blanco "<<tablero.whiteKingMoved << '\n';
+    cout << "rey  negra "<< tablero.blackKingMoved << '\n';
 
+    cout << "torre izq blanca "<<tablero.whiteRookMoved[0] << '\n';
+    cout << "torre drech blanca "<< tablero.whiteRookMoved[1] << '\n';
+    cout << "torre izq negra "<<tablero.blackRookMoved[0] << '\n';
+    cout << "torre drech negra "<< tablero.blackRookMoved[1] << '\n';
     return 0;
 }
