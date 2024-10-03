@@ -101,18 +101,18 @@ public:
             cout << i + 1 << " "; // Imprimir número de fila
             for (int j = 0; j < 8; j++) {
                 switch (tablero[i][j]) {
-                    case 'r': cout << "\u265C "; break; // Torre negra
-                    case 'n': cout << "\u265E "; break; // Caballo negro
-                    case 'b': cout << "\u265D "; break; // Alfil negro
-                    case 'q': cout << "\u265B "; break; // Reina negra
-                    case 'k': cout << "\u265A "; break; // Rey negro
-                    case 'p': cout << "\u265F "; break; // Peón negro
-                    case 'R': cout << "\u2656 "; break; // Torre blanca
-                    case 'N': cout << "\u2658 "; break; // Caballo blanco
-                    case 'B': cout << "\u2657 "; break; // Alfil blanco
-                    case 'Q': cout << "\u2655 "; break; // Reina blanca
-                    case 'K': cout << "\u2654 "; break; // Rey blanco
-                    case 'P': cout << "\u2659 "; break; // Peón blanco
+                    case 'R': cout << "\u265C "; break; // Torre blanca
+                    case 'N': cout << "\u265E "; break; // Caballo blanco
+                    case 'B': cout << "\u265D "; break; // Alfil blanco
+                    case 'Q': cout << "\u265B "; break; // Reina blanca
+                    case 'K': cout << "\u265A "; break; // Rey blanco
+                    case 'P': cout << "\u265F "; break; // Peón blanco
+                    case 'r': cout << "\u2656 "; break; // Torre negra
+                    case 'n': cout << "\u2658 "; break; // Caballo negro
+                    case 'b': cout << "\u2657 "; break; // Alfil negro
+                    case 'q': cout << "\u2655 "; break; // Reina negra
+                    case 'k': cout << "\u2654 "; break; // Rey negro
+                    case 'p': cout << "\u2659 "; break; // Peón negro
                     default: cout << "  "; break;  // Espacio vacío
                 }
             }
