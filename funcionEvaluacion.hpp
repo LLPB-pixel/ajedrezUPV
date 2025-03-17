@@ -1,8 +1,6 @@
 #include "chess.hpp"
 
-
-int w1, w2, w3, w4
-
+int w1, w2, w3, w4;
 
 int staticEvaluation(const Board& board) {
     int whiteMaterial = 0;
@@ -22,7 +20,7 @@ int staticEvaluation(const Board& board) {
 
 
 
-chess::Bitboard getAttackedSquares(const chess::Board & board, chess::Color color){
+chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color){
     chess::Bitboard attackedSquares = 0ULL;
     chess::Bitboard pieces = board.us(color);
 
@@ -57,18 +55,39 @@ chess::Bitboard getAttackedSquares(const chess::Board & board, chess::Color colo
     return attackedSquares;
 }
 
-
-
-
-
-
-int spaceControl(const Board& board) {
-    Bitboard espacio;
-
-
-    //por conretar
-    return 0;
+chess::Bitboard getDisputedSquares(const chess::Board & board, chess::Color color){
+    chess::Bitboard whiteSeenSquares = getSeenSquares(board, chess::Color::WHITE);
+    chess::Bitboard blackSeenSquares = getSeenSquares(board, chess::Color::BLACK);
+    chess::Bitboard disputedSquares = whiteSeenSquares & blackSeenSquares;
+    return disputedSquares;
 }
+
+
+
+float overallControl(const Board& board) {
+    constexpr float white_importance[8][8] = {
+        {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
+        {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
+        {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
+        {0.4, 0.6, 0.8, 1.0, 1.0, 0.8, 0.6, 0.4},
+        {0.4, 0.6, 0.8, 1.0, 1.0, 0.8, 0.6, 0.4},
+        {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
+        {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
+        {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
+    };
+
+    const float black_importance[8][8] = {
+        {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
+        {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
+        {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
+        {0.4, 0.6, 0.8, 1.0, 1.0, 0.8, 0.6, 0.4},
+        {0.4, 0.6, 0.8, 1.0, 1.0, 0.8, 0.6, 0.4},
+        {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
+        {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
+        {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
+    };
+    return 0.0;
+}  
 
 
 
