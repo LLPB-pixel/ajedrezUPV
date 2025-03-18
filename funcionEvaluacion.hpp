@@ -1,6 +1,6 @@
 #include "chess.hpp"
 
-int w1, w2, w3, w4;
+constexpr int w1 = 1, w2 = 1, w3 = 1, w4 = 1; // Asignar valores a las constantes
 
 int staticEvaluation(const Board& board) {
     int whiteMaterial = 0;
@@ -13,14 +13,11 @@ int staticEvaluation(const Board& board) {
             blackMaterial += piece.getValue();
         }
     }
-    
 
     return whiteMaterial - blackMaterial;
 }
 
-
-
-chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color){
+chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color) {
     chess::Bitboard attackedSquares = 0ULL;
     chess::Bitboard pieces = board.us(color);
 
@@ -52,19 +49,52 @@ chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color){
         }
     }
 
-    return attackedSquares;
+    return attackedSquares; // Corregido: debería devolver attackedSquares
 }
 
-chess::Bitboard getDisputedSquares(const chess::Board & board, chess::Color color){
-    chess::Bitboard whiteSeenSquares = getSeenSquares(board, chess::Color::WHITE);
-    chess::Bitboard blackSeenSquares = getSeenSquares(board, chess::Color::BLACK);
-    chess::Bitboard disputedSquares = whiteSeenSquares & blackSeenSquares;
-    return disputedSquares;
+chess::Bitboard getControlledSquares(const chess::Board & board, chess::Color color) {
+    // Subrutina para obtener las casillas disputadas
+    chess::Bitboard thisSeenSquares = getSeenSquares(board, color);
+    chess::Bitboard opponentSeenSquares = getSeenSquares(board, ~color);
+    chess::Bitboard disputedSquares = thisSeenSquares & opponentSeenSquares;
+
+    while (disputedSquares) {
+        chess::Square sq = disputedSquares.pop(); 
+        int ownAttackers = 0;
+        int opponentAttackers = 0;
+
+        chess::Bitboard attackers = board.attackersTo(sq, color);
+        while (attackers) {
+            chess::Square attackerSq = attackers.pop();
+            chess::Piece attackerPiece = board.at(attackerSq);
+            if (attackerPiece.type() == chess::PieceType::PAWN) {
+                ownAttackers += 100; // Los peones tienen un peso especial
+            } else {
+                ownAttackers++;
+            }
+        }
+
+        attackers = board.attackersTo(sq, ~color);
+        while (attackers) {
+            chess::Square attackerSq = attackers.pop();
+            chess::Piece attackerPiece = board.at(attackerSq);
+            if (attackerPiece.type() == chess::PieceType::PAWN) {
+                opponentAttackers += 100; // Los peones tienen un peso especial
+            } else {
+                opponentAttackers++;
+            }
+        }
+
+       
+        if ((ownAttackers <= opponentAttackers && ownAttackers > 0) || opponentAttackers >= 100) {
+            thisSeenSquares.clear(sq.index());
+        }
+    }
+
+    return thisSeenSquares;
 }
 
-
-
-float overallControl(const Board& board) {
+float overallControl(const chess::Board& board) {
     constexpr float white_importance[8][8] = {
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
@@ -76,7 +106,7 @@ float overallControl(const Board& board) {
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
     };
 
-    const float black_importance[8][8] = {
+    constexpr float black_importance[8][8] = {
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
@@ -86,9 +116,29 @@ float overallControl(const Board& board) {
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
     };
-    return 0.0;
-}  
 
+    chess::Bitboard whiteControlledSquares = getControlledSquares(board, chess::Color::WHITE);
+    chess::Bitboard blackControlledSquares = getControlledSquares(board, chess::Color::BLACK);
+
+    float whiteControl = 0.0;
+    float blackControl = 0.0;
+
+    while (whiteControlledSquares) {
+        chess::Square sq = whiteControlledSquares.pop();
+        int rank = sq.rank();
+        int file = sq.file();
+        whiteControl += white_importance[rank][file];
+    }
+
+    while (blackControlledSquares) {
+        chess::Square sq = blackControlledSquares.pop();
+        int rank = sq.rank();
+        int file = sq.file();
+        blackControl += black_importance[rank][file];
+    }
+
+    return whiteControl - blackControl;
+}
 
 
 int dynamicEvaluation(const Board& board) {
