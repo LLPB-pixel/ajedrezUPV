@@ -1,11 +1,15 @@
 #include "chess.hpp"
-
+ 
+ 
+//convertir en una clase
 constexpr int w1 = 1, w2 = 1, w3 = 1, w4 = 1; // Asignar valores a las constantes
-
+ 
+//Asignar valores para cada pieza para obtener el control del tablero
+ 
 int staticEvaluation(const Board& board) {
     int whiteMaterial = 0;
     int blackMaterial = 0;
-
+ 
     for (const auto& piece : board.getPieces()) {
         if (piece.isWhite()) {
             whiteMaterial += piece.getValue();
@@ -13,18 +17,18 @@ int staticEvaluation(const Board& board) {
             blackMaterial += piece.getValue();
         }
     }
-
+ 
     return whiteMaterial - blackMaterial;
 }
-
+ 
 chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color) {
     chess::Bitboard attackedSquares = 0ULL;
     chess::Bitboard pieces = board.us(color);
-
+ 
     while (pieces) {
         chess::Square sq = pieces.pop();
         chess::Piece piece = board.at(sq);
-
+ 
         switch (static_cast<chess::PieceType::underlying>(piece.type().internal())) {
             case chess::PieceType::underlying::PAWN:
                 attackedSquares |= chess::attacks::pawn(color, sq);
@@ -48,21 +52,23 @@ chess::Bitboard getSeenSquares(const chess::Board & board, chess::Color color) {
                 break;
         }
     }
-
+ 
     return attackedSquares; // Corregido: debería devolver attackedSquares
 }
-
+ 
 chess::Bitboard getControlledSquares(const chess::Board & board, chess::Color color) {
     // Subrutina para obtener las casillas disputadas
+    // arreglar ordenes de magnitud 
+ 
     chess::Bitboard thisSeenSquares = getSeenSquares(board, color);
     chess::Bitboard opponentSeenSquares = getSeenSquares(board, ~color);
     chess::Bitboard disputedSquares = thisSeenSquares & opponentSeenSquares;
-
+ 
     while (disputedSquares) {
         chess::Square sq = disputedSquares.pop(); 
         int ownAttackers = 0;
         int opponentAttackers = 0;
-
+ 
         chess::Bitboard attackers = board.attackersTo(sq, color);
         while (attackers) {
             chess::Square attackerSq = attackers.pop();
@@ -73,7 +79,7 @@ chess::Bitboard getControlledSquares(const chess::Board & board, chess::Color co
                 ownAttackers++;
             }
         }
-
+ 
         attackers = board.attackersTo(sq, ~color);
         while (attackers) {
             chess::Square attackerSq = attackers.pop();
@@ -84,18 +90,22 @@ chess::Bitboard getControlledSquares(const chess::Board & board, chess::Color co
                 opponentAttackers++;
             }
         }
-
+ 
        
         if ((ownAttackers <= opponentAttackers && ownAttackers > 0) || opponentAttackers >= 100) {
             thisSeenSquares.clear(sq.index());
         }
     }
-
+ 
     return thisSeenSquares;
 }
-
+ 
 float overallControl(const chess::Board& board) {
-    constexpr float white_importance[8][8] = {
+    //mejorar y añadir bonficacion si controlas cerca del rey
+ 
+    //mapa de calor no cte
+    //funcion solo para leer
+    float white_importance[8][8] = {
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
@@ -105,8 +115,9 @@ float overallControl(const chess::Board& board) {
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
     };
-
-    constexpr float black_importance[8][8] = {
+    //no cte
+    //ajustar valores
+    float black_importance[8][8] = {
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1},
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.3, 0.5, 0.7, 0.8, 0.8, 0.7, 0.5, 0.3},
@@ -116,31 +127,40 @@ float overallControl(const chess::Board& board) {
         {0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2},
         {0.1, 0.2, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1}
     };
-
+ 
     chess::Bitboard whiteControlledSquares = getControlledSquares(board, chess::Color::WHITE);
     chess::Bitboard blackControlledSquares = getControlledSquares(board, chess::Color::BLACK);
-
+ 
     float whiteControl = 0.0;
     float blackControl = 0.0;
-
+ 
     while (whiteControlledSquares) {
         chess::Square sq = whiteControlledSquares.pop();
         int rank = sq.rank();
         int file = sq.file();
         whiteControl += white_importance[rank][file];
     }
-
+ 
     while (blackControlledSquares) {
         chess::Square sq = blackControlledSquares.pop();
         int rank = sq.rank();
         int file = sq.file();
         blackControl += black_importance[rank][file];
     }
-
+ 
     return whiteControl - blackControl;
 }
-
-
+ 
+ 
 int dynamicEvaluation(const Board& board) {
     return 0;
 }
+ 
+//EStructura de peones
+    //peones debiles, pasados, potegidos y pasados y doblados, aislados, retrasado
+//controlar casillas cerca del rey si hay damas
+//Ajustar valro sengun numero de jugada y material en le tablero. 
+//controlar peones debiles, debilidades
+//discernir si es apertura final o medio juego
+//Libro de aperturas
+//Actividad de las pìezas
