@@ -29,23 +29,23 @@ public:
             chess::Square sq = pieces.pop();
             chess::Piece piece = board.at(sq);
 
-            switch (static_cast<chess::PieceType::underlying>(piece.type().internal())) {
-                case chess::PieceType::underlying::PAWN:
+            switch (piece.type().internal()) { 
+                case chess::PieceType::PAWN:
                     attackedSquares |= chess::attacks::pawn(color, sq);
                     break;
-                case chess::PieceType::underlying::KNIGHT:
+                case chess::PieceType::KNIGHT:
                     attackedSquares |= chess::attacks::knight(sq);
                     break;
-                case chess::PieceType::underlying::BISHOP:
+                case chess::PieceType::BISHOP:
                     attackedSquares |= chess::attacks::bishop(sq, board.occ());
                     break;
-                case chess::PieceType::underlying::ROOK:
+                case chess::PieceType::ROOK:
                     attackedSquares |= chess::attacks::rook(sq, board.occ());
                     break;
-                case chess::PieceType::underlying::QUEEN:
+                case chess::PieceType::QUEEN:
                     attackedSquares |= chess::attacks::queen(sq, board.occ());
                     break;
-                case chess::PieceType::underlying::KING:
+                case chess::PieceType::KING:
                     attackedSquares |= chess::attacks::king(sq);
                     break;
                 default:
@@ -53,7 +53,7 @@ public:
             }
         }
 
-        return attackedSquares; // Corregido: debería devolver attackedSquares
+        return attackedSquares;
     }
 
     chess::Bitboard getControlledSquares(const chess::Board& board, chess::Color color) {
@@ -153,14 +153,5 @@ public:
     int dynamicEvaluation(const Board& board) {
         return 0;
     }
-
-    // Estructura de peones
-    // peones debiles, pasados, potegidos y pasados y doblados, aislados, retrasado
-    // controlar casillas cerca del rey si hay damas
-    // Ajustar valro sengun numero de jugada y material en le tablero.
-    // controlar peones debiles, debilidades
-    // discernir si es apertura final o medio juego
-    // Libro de aperturas
-    // Actividad de las pìezas
 };
 
