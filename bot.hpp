@@ -72,7 +72,7 @@ public:
         for (const Move& move : legalMoves) {
             //PELIGROSO: SE PUEDEN PROVOCAR SEGMENTATION FAULTS
             Bot threadBot(*this);
-            threads.emplace_back([threadBot, move, maxDepth, &mutex, &bestScore, &bestMove]() mutable {
+            threads.push_back([threadBot, move, maxDepth, &mutex, &bestScore, &bestMove]() mutable {
                 threadBot.makemove(move);
                 float score = -threadBot.megascout(maxDepth - 1, -100000.0f, 100000.0f);
                 {
