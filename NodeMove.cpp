@@ -1,4 +1,9 @@
+#pragma once
 #include "NodeMove.h"
+#include <omp.h>
+#include <iostream>
+#include "classGeneralEvaluator.hpp"
+
 
 NodeMove::NodeMove(Board board, NodeMove *parent) : board(board), parent(parent) {
     if(parent == nullptr){
@@ -7,15 +12,17 @@ NodeMove::NodeMove(Board board, NodeMove *parent) : board(board), parent(parent)
     else{
         currentDepth = parent->currentDepth + 1;
     }
-    if(currentDepth < MAX_DEPTH) {
+    if (currentDepth < MAX_DEPTH){
         Movelist legalMoves;
         movegen::legalmoves(legalMoves, board);
+        #pragma omp parallel for
         for (const Move& move : legalMoves) {
             NodeMove *child = new NodeMove(board, this);
             child->board.makeMove(move); // Apply the move to the child node
             addChild(child);
         }
     }
+    
 
 
 }
@@ -48,6 +55,12 @@ void NodeMove::printBoard() {
     std::cout << "  +-----------------+" << std::endl;
     std::cout << "    a b c d e f g h" << std::endl;
 }
-
+int NodeMove::evaluateBoard() {
+    int score = 0;
+    GeneralEvaluator* evaluator = new GeneralEvaluator();
+    score = evaluator->evaluate(&board);
+    delete evaluator;
+    return score;
+}
 
 
