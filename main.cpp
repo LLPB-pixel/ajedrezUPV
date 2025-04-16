@@ -3,11 +3,10 @@
 
 
 int main(){
-
+    Board board(chess::constants::STARTPOS);
     NodeMove *root = new NodeMove(board, nullptr);
-    //imprimir el tablero
     root->printBoard();
-
+    delete root;
 
     return 0;
 }
