@@ -52,7 +52,7 @@ int main() {
                 std::cout << "Movimiento ilegal.\n";
             }
         } else {
-            // Juega el bot (negras)
+            //HASTA AQUÍ TODO OK
             Move best = bot.findBestMove(5); // profundidad deseada
             std::cout << "Bot juega: " << best << "\n";
             bot.makemove(best);
