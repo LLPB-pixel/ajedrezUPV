@@ -7,14 +7,16 @@ NodeMove::NodeMove(Board board, NodeMove *parent) : board(board), parent(parent)
     else{
         currentDepth = parent->currentDepth + 1;
     }
-    //childs 
-    Movelist legalMoves;
-    movegen::legalmoves(legalMoves, board);
-    for (const Move& move : legalMoves) {
-        NodeMove *child = new NodeMove(board, this);
-        child->board.makeMove(move); // Apply the move to the child node
-        addChild(child);
+    if(currentDepth < MAX_DEPTH) {
+        Movelist legalMoves;
+        movegen::legalmoves(legalMoves, board);
+        for (const Move& move : legalMoves) {
+            NodeMove *child = new NodeMove(board, this);
+            child->board.makeMove(move); // Apply the move to the child node
+            addChild(child);
+        }
     }
+
 
 }
 
@@ -46,5 +48,6 @@ void NodeMove::printBoard() {
     std::cout << "  +-----------------+" << std::endl;
     std::cout << "    a b c d e f g h" << std::endl;
 }
+
 
 
