@@ -12,9 +12,13 @@ public:
   float material(const Board *board, const Color color) override;
   float pawn_structure(const Board *board, const Color color) override;
   float safe_king(const Board *board, const Color color) override;
-  float mobility(const Board *board, const Color color) override;
+  float control(const Board *board, const Color color) override;
 
   ~GeneralEvaluator() override;
+  private:
+    chess::Bitboard getSeenSquares(const chess::Board *board, chess::Color color);
+    chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color color);
+    
 };
 
 #endif
