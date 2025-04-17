@@ -39,7 +39,7 @@ class Evaluator{
         virtual float material(const Board *board, const Color color);
         virtual float pawn_structure(const Board *board, const Color color);
         virtual float safe_king(const Board *board, const Color color);
-        virtual float mobility(const Board *board, const Color color);
+        virtual float control(const Board *board, const Color color);
         virtual ~Evaluator();
 };
 
