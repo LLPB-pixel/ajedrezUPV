@@ -186,7 +186,7 @@ GeneralEvaluator::~GeneralEvaluator() {
 
 }
 
-chess::Bitboard getSeenSquares(const chess::Board *board, chess::Color color) {
+chess::Bitboard GeneralEvaluator::getSeenSquares(const chess::Board *board, chess::Color color) {
     chess::Bitboard attackedSquares = 0ULL;
     chess::Bitboard pieces = board->us(color);
 
@@ -221,7 +221,7 @@ chess::Bitboard getSeenSquares(const chess::Board *board, chess::Color color) {
     return attackedSquares;
 }
 
-chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color color) {
+chess::Bitboard GeneralEvaluator::getControlledSquares(const chess::Board *board, chess::Color color) {
     // Subrutina para obtener las casillas disputadas
     // arreglar ordenes de magnitud 
 
@@ -276,8 +276,9 @@ chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color col
 
     return thisSeenSquares;
 }
-chess::Bitboard getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color enemyColor) {
-        // Crear un tablero temporal sin las piezas propias
+
+chess::Bitboard GeneralEvaluator::getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color enemyColor) {
+    // Crear un tablero temporal sin las piezas propias
     chess::Bitboard enemyPieces = board->us(enemyColor);
     chess::Bitboard emptyBoard = board->occ() ^ board->us(~enemyColor); // Eliminar las piezas propias
     
@@ -308,8 +309,9 @@ chess::Bitboard getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color e
                 break;
             default:
                 break;
-            }
         }
-    
-        return seenSquares;
     }
+
+    return seenSquares;
+}
+
