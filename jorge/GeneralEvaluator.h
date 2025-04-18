@@ -21,6 +21,7 @@ private:
     chess::Bitboard getSeenSquares(const chess::Board *board, chess::Color color);
     chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color color);
     chess::Bitboard getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color enemyColor);
+    float evaluatePieceType();
 };
 
 #endif
