@@ -34,15 +34,19 @@ protected:
         {0.025, 0.05, 0.075, 0.1, 0.1, 0.075, 0.05, 0.025}};
 
 public:
-    virtual ~Evaluator() = default; // Define the virtual destructor
+    Evaluator() = default;                // Constructor normal (no virtual)
+    virtual ~Evaluator() = default;
     virtual float evaluate(const Board *board, const Color color) = 0;
-    virtual float positionOfThePiecesAndMaterial(const Board *board);
-    virtual float pawn_structure(const Board *board, const Color color);
-    virtual float safe_king(const Board *board, const Color color);
-    virtual float control(const Board *board, const Color color);
+    virtual float positionOfThePiecesAndMaterial(const Board *board) = 0;
+    virtual float pawn_structure(const Board *board, const Color color) = 0;
+    virtual float safe_king(const Board *board, const Color color) = 0;
+    virtual float control(const Board *board, const Color color) = 0;
+
 };
 
 #endif
+
+
 
 
 
