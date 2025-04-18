@@ -35,13 +35,16 @@ class Evaluator{
 
       public:
         virtual float evaluate(const Board *board, const Color color) = 0;
-        virtual float position(const Board *board, const Color color);
-        virtual float material(const Board *board, const Color color);
+        virtual float positionOfThePiecesAndMaterial(const Board *board);
         virtual float pawn_structure(const Board *board, const Color color);
         virtual float safe_king(const Board *board, const Color color);
         virtual float control(const Board *board, const Color color);
         virtual ~Evaluator();
 };
+
+
+
+#endif
 
 
 
