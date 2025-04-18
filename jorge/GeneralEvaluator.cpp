@@ -1,6 +1,7 @@
 #include "GeneralEvaluator.h"
 #include <iostream> 
 
+using namespace chess;
 GeneralEvaluator::GeneralEvaluator() {}
 
 float GeneralEvaluator::evaluate(const Board *board, const Color color) {
@@ -9,6 +10,8 @@ float GeneralEvaluator::evaluate(const Board *board, const Color color) {
 }
 
 float GeneralEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
+    float whiteMaterial = 0;
+    float blackMaterial = 0;
     //esto lo hago para aprovechar el bucle
     chess::Bitboard pieces = board->pieces(chess::PieceType::PAWN, chess::Color::WHITE);
     int rank = 0;
@@ -88,13 +91,35 @@ float GeneralEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
 }
  
 
-float GeneralEvaluator::pawn_structure(const Board *board, const Color color) {
-    return 0.0;
-}
 
-float GeneralEvaluator::safe_king(const Board *board, const Color color) {
-    chess::Bitboard theOtherSidesControll = getControlledSquares(board, ~Color);
-    chess::Bitboard theOtherSidesSeen = getSeenSquares(board, ~Color);
+float GeneralEvaluator::safe_king(const chess::Board *board, chess::Color color) {
+    chess::Color oppositeColor = (color == chess::Color::WHITE) ? chess::Color::BLACK : chess::Color::WHITE;
+
+    chess::Bitboard theOtherSidesControll = getControlledSquares(board, oppositeColor);
+    chess::Bitboard theOtherSidesSeen = getSeenSquares(board, oppositeColor);
+    chess::Bitboard enemySeenIgnoringOwnPieces = getEnemySeenSquaresIgnoringOwnPieces(board, oppositeColor);
+
+    chess::Square kingSquare = board->kingSq(color);
+    chess::Bitboard nextToKing = chess::attacks::king(kingSquare);
+
+    chess::Bitboard controlledAroundKing = nextToKing & theOtherSidesControll;
+    float controlBonus = static_cast<float>(controlledAroundKing.count()) * 0.5f;
+
+    chess::Bitboard seenAroundKing = nextToKing & theOtherSidesSeen;
+    float seenBonus = static_cast<float>(seenAroundKing.count()) * 0.3f;
+
+    chess::Bitboard seenIgnoringOwnAroundKing = nextToKing & enemySeenIgnoringOwnPieces;
+    float ignoringOwnBonus = static_cast<float>(seenIgnoringOwnAroundKing.count()) * 0.2f;
+
+    
+    chess::Bitboard kingSquareBitboard = chess::Bitboard::fromSquare(kingSquare);
+    bool kingSquareSeenIgnoringOwn = (enemySeenIgnoringOwnPieces & kingSquareBitboard).getBits() != 0;
+    float kingSquarePenalty = kingSquareSeenIgnoringOwn ? -1.0f : 0.0f;
+
+    float kingSafety = static_cast<float>(nextToKing.count() - theOtherSidesSeen.count());
+    kingSafety += controlBonus + seenBonus + ignoringOwnBonus + kingSquarePenalty;
+
+    return kingSafety;
 }
 
 float GeneralEvaluator::control(const Board *board, const Color color) {
@@ -127,6 +152,34 @@ float GeneralEvaluator::control(const Board *board, const Color color) {
     }
         
     return whiteControl - blackControl;
+}
+
+float GeneralEvaluator::pawn_structure(const chess::Board *board, chess::Color color) {
+    chess::Bitboard pawns = board->pieces(chess::PieceType::PAWN, color);
+    float score = 0.0f;
+
+    while (pawns) {
+        chess::Square pawnSquare = pawns.pop();
+        chess::File file = pawnSquare.file();
+
+        auto adjacentFiles = chess::Bitboard(chess::File(file - 1)) | chess::Bitboard(chess::File(file + 1));
+        if ((board->pieces(chess::PieceType::PAWN, color) & adjacentFiles).empty()) {
+            score -= 0.5f; // Penalización por peones aislados
+        }
+
+        if ((board->pieces(chess::PieceType::PAWN, color) & chess::Bitboard(file)).count() > 1) {
+            score -= 0.5f; // Penalización por peones doblados
+        }
+
+        chess::Bitboard opposingPawns = board->pieces(chess::PieceType::PAWN, ~color);
+        chess::Bitboard passedMask = chess::Bitboard(file) | chess::Bitboard(chess::File(file - 1)) | chess::Bitboard(chess::File(file + 1));
+        passedMask = (color == chess::Color::WHITE) ? passedMask << 8 : passedMask >> 8;
+        if ((opposingPawns & passedMask).empty()) {
+            score += 1.0f; // Bonificación por peones pasados
+        }
+    }
+
+    return std::clamp(score, 0.0f, 2.0f);
 }
 
 GeneralEvaluator::~GeneralEvaluator() {
@@ -223,3 +276,40 @@ chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color col
 
     return thisSeenSquares;
 }
+chess::Bitboard getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color enemyColor) {
+        // Crear un tablero temporal sin las piezas propias
+    chess::Bitboard enemyPieces = board->us(enemyColor);
+    chess::Bitboard emptyBoard = board->occ() ^ board->us(~enemyColor); // Eliminar las piezas propias
+    
+    chess::Bitboard seenSquares = 0ULL;
+    
+    while (enemyPieces) {
+        chess::Square sq = enemyPieces.pop();
+        chess::Piece piece = board->at(sq);
+    
+        switch (piece.type().internal()) {
+            case chess::PieceType::PAWN:
+                seenSquares |= chess::attacks::pawn(enemyColor, sq);
+                break;
+            case chess::PieceType::KNIGHT:
+                seenSquares |= chess::attacks::knight(sq);
+                break;
+            case chess::PieceType::BISHOP:
+                seenSquares |= chess::attacks::bishop(sq, emptyBoard);
+                break;
+            case chess::PieceType::ROOK:
+                seenSquares |= chess::attacks::rook(sq, emptyBoard);
+                break;
+            case chess::PieceType::QUEEN:
+                seenSquares |= chess::attacks::queen(sq, emptyBoard);
+                break;
+            case chess::PieceType::KING:
+                seenSquares |= chess::attacks::king(sq);
+                break;
+            default:
+                break;
+            }
+        }
+    
+        return seenSquares;
+    }
