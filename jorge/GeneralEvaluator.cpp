@@ -12,83 +12,44 @@ float GeneralEvaluator::evaluate(const Board *board, const Color color) {
 float GeneralEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
     float whiteMaterial = 0;
     float blackMaterial = 0;
-    //esto lo hago para aprovechar el bucle
-    chess::Bitboard pieces = board->pieces(chess::PieceType::PAWN, chess::Color::WHITE);
-    int rank = 0;
-    int file = 0;
-    chess::Square sq;
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        whiteMaterial += 0.95 + 0.05*rank; //no tocar fdo: LLORENÇ
-    }
-    pieces = board->pieces(chess::PieceType::KNIGHT, chess::Color::WHITE);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        whiteMaterial += 3 + white_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::BISHOP, chess::Color::WHITE);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        whiteMaterial += 3.15 + white_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::ROOK, chess::Color::WHITE);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        whiteMaterial += 5 + white_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::QUEEN, chess::Color::WHITE);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        whiteMaterial += 9 + white_importance[rank][file];
-    }
-    
 
-    // Iterar sobre piezas negras
-    pieces = board->pieces(chess::PieceType::PAWN, chess::Color::BLACK);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        blackMaterial += 0.95 + 0.05*(7-rank); //no tocar fdo: LLORENÇ
-    }
-    pieces = board->pieces(chess::PieceType::KNIGHT, chess::Color::BLACK);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        blackMaterial += 3 + black_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::BISHOP, chess::Color::BLACK);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        blackMaterial += 3.15 + black_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::ROOK, chess::Color::BLACK);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        blackMaterial += 5 + black_importance[rank][file];
-    }
-    pieces = board->pieces(chess::PieceType::QUEEN, chess::Color::BLACK);
-    while (pieces) {
-        sq = pieces.pop();
-        rank = sq.rank();
-        file = sq.file();
-        blackMaterial += 9 + black_importance[rank][file];
-    }
+    whiteMaterial += evaluatePieceType(board, chess::PieceType::PAWN, chess::Color::WHITE, 0.0, white_importance);
+    whiteMaterial += evaluatePieceType(board, chess::PieceType::KNIGHT, chess::Color::WHITE, 3.0, white_importance);
+    whiteMaterial += evaluatePieceType(board, chess::PieceType::BISHOP, chess::Color::WHITE, 3.15, white_importance);
+    whiteMaterial += evaluatePieceType(board, chess::PieceType::ROOK, chess::Color::WHITE, 5.0, white_importance);
+    whiteMaterial += evaluatePieceType(board, chess::PieceType::QUEEN, chess::Color::WHITE, 9.0, white_importance);
+
+    blackMaterial += evaluatePieceType(board, chess::PieceType::PAWN, chess::Color::BLACK, 0.0, black_importance);
+    blackMaterial += evaluatePieceType(board, chess::PieceType::KNIGHT, chess::Color::BLACK, 3.0, black_importance);
+    blackMaterial += evaluatePieceType(board, chess::PieceType::BISHOP, chess::Color::BLACK, 3.15, black_importance);
+    blackMaterial += evaluatePieceType(board, chess::PieceType::ROOK, chess::Color::BLACK, 5.0, black_importance);
+    blackMaterial += evaluatePieceType(board, chess::PieceType::QUEEN, chess::Color::BLACK, 9.0, black_importance);
+
     return whiteMaterial - blackMaterial;
 }
+
+float GeneralEvaluator::evaluatePieceType(
+    const Board* board,
+    chess::PieceType type,
+    chess::Color color,
+    float baseValue,
+    const float importance[8][8]
+) {
+    float material = 0.0;
+    chess::Bitboard pieces = board->pieces(type, color);
+    while (pieces) {
+        chess::Square sq = pieces.pop();
+        int rank = sq.rank();
+        int file = sq.file();
+        if (type == chess::PieceType::PAWN) {
+            material += 0.95 + 0.05 * (color == chess::Color::WHITE ? rank : (7 - rank)); // no tocar fdo: LLORENÇ
+        } else {
+            material += baseValue + importance[rank][file];
+        }
+    }
+    return material;
+}
+
  
 
 
