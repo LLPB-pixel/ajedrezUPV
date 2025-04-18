@@ -8,8 +8,7 @@ public:
   GeneralEvaluator();
 
   float evaluate(const Board *board, const Color color) override;
-  float positionOfThePiecesAndMaterial(const chess::Board *board);
-  float material(const Board *board, const Color color) override;
+  float positionOfThePiecesAndMaterial(const chess::Board *board) override;
   float pawn_structure(const Board *board, const Color color) override;
   float safe_king(const Board *board, const Color color) override;
   float control(const Board *board, const Color color) override;
