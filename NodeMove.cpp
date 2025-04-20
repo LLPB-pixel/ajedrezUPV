@@ -1,4 +1,3 @@
-#pragma once
 #include "NodeMove.h"
 #include <omp.h>
 #include <iostream>
@@ -62,5 +61,43 @@ int NodeMove::evaluateBoard() {
     delete evaluator;
     return score;
 }
+float NodeMove::minimax(GeneralEvaluator *evaluator) {
 
+    auto [reason, result] = board.isGameOver();
+    if (result != chess::GameResult::NONE) {
+        if (result == chess::GameResult::WIN) {
+            return (board.sideToMove() == chess::Color::WHITE) ? -10000 : 10000;
+        } else if (result == chess::GameResult::DRAW) {
+            return 0;
+        }
+    }
+
+
+    if (currentDepth == MAX_DEPTH) {
+        return evaluator->evaluate(&board, board.sideToMove());
+    }
+
+
+    if (this->board.sideToMove() == chess::Color::WHITE) {
+        float bestValue = -99999;
+        for (int i = 0; i < childIndex; ++i) {
+            if (childs[i] != nullptr) {
+                float value = childs[i]->minimax(evaluator); 
+                bestValue = std::max(bestValue, value);
+            }
+        }
+        return bestValue;
+    }
+
+    else {
+        float bestValue = 99999;
+        for (int i = 0; i < childIndex; ++i) {
+            if (childs[i] != nullptr) {
+                float value = childs[i]->minimax(evaluator); 
+                bestValue = std::min(bestValue, value);
+            }
+        }
+        return bestValue;
+    }
+}
 
