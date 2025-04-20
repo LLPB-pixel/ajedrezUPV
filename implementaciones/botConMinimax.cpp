@@ -5,85 +5,78 @@
 #include <string>
 
 void printBoard(const chess::Board& board) {
-    std::cout << "  +-----------------+" << std::endl;
+    std::cout << "  +-----------------+\n";
     for (int rank = 7; rank >= 0; --rank) {
         std::cout << rank + 1 << " | ";
         for (int file = 0; file < 8; ++file) {
-            chess::Square square = chess::Square(rank * 8 + file);
+            chess::Square square(static_cast<chess::File>(file), 
+                            static_cast<chess::Rank>(rank));
             chess::Piece piece = board.at(square);
-
-            if (piece == chess::Piece()) { // Cambiado para manejar piezas vacías
-                std::cout << ". ";
-            } else {
-                std::cout << static_cast<std::string>(piece) << " ";
-            }
+            std::cout << (piece == chess::Piece() ? ". " : static_cast<std::string>(piece) + " ");
         }
-        std::cout << "|" << std::endl;
+        std::cout << "|\n";
     }
-    std::cout << "  +-----------------+" << std::endl;
-    std::cout << "    a b c d e f g h" << std::endl;
+    std::cout << "  +-----------------+\n";
+    std::cout << "    a b c d e f g h\n";
+}
+bool isThisMoveLegal(const chess::Board& board, const chess::Move& move) {
+    chess::Movelist legalMoves;
+    chess::movegen::legalmoves(legalMoves, board);
+    return std::find(legalMoves.begin(), legalMoves.end(), move) != legalMoves.end();
 }
 
 int main() {
-    // Carga la posición inicial del tablero
     chess::Board board(chess::constants::STARTPOS);
     GeneralEvaluator evaluator;
 
-    std::cout << "¡Bienvenido al juego de ajedrez!" << std::endl;
+    std::cout << "¡Bienvenido al juego de ajedrez!\n";
     printBoard(board);
 
     while (board.isGameOver().second == chess::GameResult::NONE) {
-        // Turno del usuario
-        if (board.sideToMove() == chess::Color::WHITE) {
+        if (board.sideToMove() == chess::Color::BLACK) {
+            // Human player turn
             std::string userMove;
             chess::Move move;
             bool illegalMove = true;
+            
             while (illegalMove) {
                 std::cout << "Introduce tu movimiento (ejemplo: e2e4): ";
                 std::cin >> userMove;
 
                 try {
                     move = chess::uci::uciToMove(board, userMove);
-                    illegalMove = false;
+                    if (isThisMoveLegal(board, move)) {
+                        illegalMove = false;
+                    } else {
+                        std::cout << "Movimiento ilegal. Intenta de nuevo.\n";
+                    }
                 } catch (...) {
-                    std::cout << "Movimiento ilegal. Intenta de nuevo." << std::endl;
+                    std::cout << "Movimiento inválido. Intenta de nuevo.\n";
                 }
             }
 
             board.makeMove(move);
             printBoard(board);
         } else {
-            // Turno del motor
-            std::cout << "Calculando el movimiento del motor..." << std::endl;
+            // Engine turn
+            std::cout << "Calculando el movimiento del motor...\n";
 
             NodeMove rootNode(board, nullptr);
-            rootNode.minimax(&evaluator, board.sideToMove());
+            float bestScore = rootNode.minimax(&evaluator, board.sideToMove());
+            chess::Move bestMove = rootNode.getBestMove(bestScore);
 
-            // Encuentra el mejor movimiento
-            float bestScore = rootNode.getEval();
-            chess::Move bestMove;
-            for (int i = 0; i < rootNode.getChildIndex(); ++i) {
-                NodeMove* child = rootNode.getChild(i);
-                if (child != nullptr && child->getEval() == bestScore) {
-                    bestMove = child->getLastMove();
-                    break;
-                }
-            }
-
-            std::cout << "El motor juega: " << bestMove << std::endl;
+            
+            std::cout << "El motor juega: " << bestMove << "\n";
             board.makeMove(bestMove);
             printBoard(board);
+            
         }
     }
 
-    // Fin del juego
+    // Game over
     auto [reason, result] = board.isGameOver();
     std::cout << "El juego ha terminado. ";
-    if (result == chess::GameResult::WIN) {
-        std::cout << (board.sideToMove() == chess::Color::WHITE ? "Negras" : "Blancas") << " ganan por jaque mate." << std::endl;
-    } else if (result == chess::GameResult::DRAW) {
-        std::cout << "Empate." << std::endl;
-    }
+    
 
     return 0;
 }
