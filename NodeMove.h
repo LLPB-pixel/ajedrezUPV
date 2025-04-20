@@ -15,7 +15,6 @@ class NodeMove {
 private:
     // Core data members
     int current_depth_;
-    Board board_;
     NodeMove* parent_;
     Move last_move_;
     float eval_;
@@ -26,18 +25,18 @@ private:
 
 public:
     // Construction
-    NodeMove(Board board, NodeMove* parent = nullptr);
+    NodeMove(Board *board, NodeMove* parent = nullptr);
     ~NodeMove() = default;
     
     // 
-    void addChild(Board board, Move move);
+    void addChild(Board *board, Move move);
     
     // Funciones varias para depuracion
     void printEvaluationsOfChildren() const;
-    void printBoardsAndEvaluationsOfChildren() const;
-    void printBoard() const;
+    void printBoard(Board &board) const;
     int evaluateBoard() const;
-    float minimax(GeneralEvaluator* evaluator, Color root_color);
+    float minimax(GeneralEvaluator* evaluator, Board *board, Color root_color);
+    float alphaBeta(GeneralEvaluator *evaluator, float alpha, float beta, Color root_color, Board *board);
     chess::Move getBestMove(float best_score) const;
     
     // Getters varios
