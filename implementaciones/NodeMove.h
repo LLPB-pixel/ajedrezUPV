@@ -3,47 +3,69 @@
 
 #include "chess.hpp"
 #include "GeneralEvaluator.h"
-using namespace chess;
+#include <array>
+#include <memory>
 
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <vector>
+namespace chess {
 
-#define MAX_DEPTH 3//tocar esto para cambiar la profundidad maxima de busqueda
-#define MAX_BRANCH 100
+constexpr int MAX_DEPTH = 4;
+constexpr int MAX_BRANCH = 100;
 
+class NodeMove {
+private:
+    // los atributos van asi por convencion
+    int current_depth_;
+    Board board_;
+    NodeMove* parent_;
+    Move last_move_;
+    float eval_;
+    
+    // ahora vamos a usar unique ptr para gestionar mejor la memoria
+    std::array<std::unique_ptr<NodeMove>, MAX_BRANCH> children_;
+    size_t child_count_ = 0;
 
-class NodeMove{
-    private:
-        int currentDepth;
-        Board board;
-        NodeMove *parent = nullptr;
-        NodeMove *childs[MAX_BRANCH] = {nullptr};
-        Move lastMove;
-        float eval = 0.0f;
-        int childIndex = 0;
+public:
+    // Constructores
+    NodeMove(Board board, NodeMove* parent = nullptr);
+    ~NodeMove() = default;
+    
+    // 
+    void addChild(Board board, Move move);
+    
+    // Funciones varias para depuracion
+    void printEvaluationsOfChildren() const;
+    void printBoardsAndEvaluationsOfChildren() const;
+    void printBoard() const;
+    int evaluateBoard() const;
+    float minimax(GeneralEvaluator* evaluator, Color root_color);
+    chess::Move getBestMove(float best_score) const;
+    
+    // Getters varios
+    float getEval() const { 
+        return eval_; 
+    }
+    size_t getChildCount() const { 
+        return child_count_; 
+    }
 
+    NodeMove* getChild(size_t index) const { 
+        return (index < child_count_) ? children_[index].get() : nullptr; 
+    }
+    chess::Move getLastMove() const { 
+        return last_move_; 
+    }
+    int getCurrentDepth() const { 
+        return current_depth_; 
+    }
 
-    public:
-        //Constructor genral
-        NodeMove(Board board, NodeMove *parent);
-        // Destructor
-        ~NodeMove();
-        // Añadir hijo
-        void addChild(NodeMove *child);
-        void printBoard();
-        int evaluateBoard();
-        float minimax(GeneralEvaluator *evaluator, Color rootColor);
-        chess::Move getBestMove(float bestScore);
-        void printEvaluationsOfChildren() const;
-        void printBoardsAndEvaluationsOfChildren() const;
-
-        //getters varios
-        float getEval() const;
-        int getChildIndex() const;
-        NodeMove* getChild(int index) const;
-        chess::Move getLastMove() const;
+    // si copias un unique ptr puede hacer pum
+    NodeMove(const NodeMove&) = delete;
+    NodeMove& operator=(const NodeMove&) = delete;
+    
+    // 
+    NodeMove(NodeMove&&) = default;
+    NodeMove& operator=(NodeMove&&) = default;
 };
 
+} // namespace chess
 #endif // NODEMOVE_H
