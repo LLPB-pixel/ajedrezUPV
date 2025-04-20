@@ -5,6 +5,12 @@ using namespace chess;
 GeneralEvaluator::GeneralEvaluator() {}
 
 float GeneralEvaluator::evaluate(const Board *board, const Color color) {
+    if(board->isGameOver().second == chess::GameResult::WIN) {
+        return color == chess::Color::WHITE ? -10000.0f : 10000.0f;
+    }
+    else if(board->isGameOver().second == chess::GameResult::DRAW) {
+        return 0.0f;
+    }
     float score = 0.0f;
 
     // Diferencia de material y posición
@@ -292,4 +298,5 @@ chess::Bitboard GeneralEvaluator::getEnemySeenSquaresIgnoringOwnPieces(const Boa
 
     return seenSquares;
 }
+
 
