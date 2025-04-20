@@ -29,6 +29,8 @@ class NodeMove{
         // Añadir hijo
         void addChild(NodeMove *child);
         void printBoard();
+        int evaluateBoard();
+        float minimax(GeneralEvaluator *evaluator);
 };
 
 #endif // NODEMOVE_H
