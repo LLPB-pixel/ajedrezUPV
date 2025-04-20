@@ -1,162 +1,118 @@
 #include "NodeMove.h"
 #include <omp.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace chess;
 
+NodeMove::NodeMove(Board board, NodeMove* parent) : 
+    board_(std::move(board)),
+    parent_(parent),
+    current_depth_(parent ? parent->current_depth_ + 1 : 0) {
+    
+    if (current_depth_ < MAX_DEPTH) {
+        Movelist moves;
+        movegen::legalmoves(moves, board_);
 
-NodeMove::NodeMove(Board board, NodeMove *parent) : board(board), parent(parent) {
-    if (parent == nullptr) {
-        currentDepth = 0;
+        for (const Move& move : moves) {
+            if (child_count_ >= MAX_BRANCH) break;
+            
+            Board new_board = board_;
+            new_board.makeMove(move);
+            children_[child_count_] = std::make_unique<NodeMove>(new_board, this);
+            children_[child_count_]->last_move_ = move;
+            child_count_++;
+        }
+    }
+}
+
+void NodeMove::addChild(Board board, Move move) {
+    if (child_count_ < MAX_BRANCH) {
+        children_[child_count_] = std::make_unique<NodeMove>(board, this);
+        children_[child_count_]->last_move_ = move;
+        child_count_++;
+    }
+}
+
+void NodeMove::printBoard() const {
+    std::cout << "  +-----------------+\n";
+    for (int rank = 7; rank >= 0; --rank) {
+        std::cout << rank + 1 << " | ";
+        for (int file = 0; file < 8; ++file) {
+            Square square(static_cast<File>(file), static_cast<Rank>(rank));
+            std::cout << static_cast<std::string>(board_.at(square)) << " ";
+        }
+        std::cout << "|\n";
+    }
+    std::cout << "  +-----------------+\n";
+    std::cout << "    a b c d e f g h\n";
+}
+
+int NodeMove::evaluateBoard() const {
+    GeneralEvaluator evaluator;
+    return evaluator.evaluate(&board_, board_.sideToMove());
+}
+
+float NodeMove::minimax(GeneralEvaluator* evaluator, Color root_color) {
+    if (auto [reason, result] = board_.isGameOver(); result != GameResult::NONE) {
+        if (result == GameResult::WIN) {
+            return (board_.sideToMove() == Color::WHITE) ? -10000.0f : 10000.0f;
+        }
+        return 0.0f; // DRAW
+    }
+
+    if (current_depth_ == MAX_DEPTH) {
+        eval_ = evaluator->evaluate(&board_, root_color);
+        return eval_;
+    }
+
+    if (child_count_ == 0) return 0.0f;
+
+    if (board_.sideToMove() == Color::WHITE) {
+        float best_value = -99999.0f;
+        for (size_t i = 0; i < child_count_; ++i) {
+            float value = children_[i]->minimax(evaluator, root_color);
+            best_value = std::max(best_value, value);
+        }
+        eval_ = best_value;
+        return best_value;
     } else {
-        currentDepth = parent->currentDepth + 1;
+        float best_value = 99999.0f;
+        for (size_t i = 0; i < child_count_; ++i) {
+            float value = children_[i]->minimax(evaluator, root_color);
+            best_value = std::min(best_value, value);
+        }
+        eval_ = best_value;
+        return best_value;
     }
+}
 
-    if (currentDepth < MAX_DEPTH) {
-        Movelist legalMoves;
-        movegen::legalmoves(legalMoves, board);
-
-        for (const Move& move : legalMoves) {
-            Board newBoard = board;          // Crear copia del tablero actual
-            newBoard.makeMove(move);         // Aplicar el movimiento
-            NodeMove* child = new NodeMove(newBoard, this); // Pasar el nuevo tablero al hijo
-            child->lastMove = move;
-            addChild(child);
+chess::Move NodeMove::getBestMove(float best_score) const {
+    for (size_t i = 0; i < child_count_; ++i) {
+        if (children_[i]->eval_ == best_score) {
+            return children_[i]->last_move_;
         }
     }
+    return Move(); // Return null move if not found
 }
 
-
-NodeMove::~NodeMove() {
-    for (int i = 0; i < MAX_BRANCH; ++i) {
-        delete childs[i];
-    }
-}
-
-void NodeMove::addChild(NodeMove *child) {
-    if (childIndex >= MAX_BRANCH) {
-        std::cerr << "Error: Maximum number of child nodes reached." << std::endl;
-        return;
-    }
-    this->childs[childIndex] = child;
-    childIndex++;
-}
-void NodeMove::printBoard() {
-    std::cout << "  +-----------------+" << std::endl;
-    for (int rank = 7; rank >= 0; --rank) { 
-        std::cout << rank + 1 << " | "; 
-        for (int row = 0; row < 8; ++row) { 
-            chess::Square square(static_cast<chess::File::underlying>(row), static_cast<chess::Rank::underlying>(rank));
-            chess::Piece piece = board.at(square);
-            std::cout << static_cast<std::string>(piece) << " "; 
-        }
-        std::cout << "|" << std::endl;
-    }
-    std::cout << "  +-----------------+" << std::endl;
-    std::cout << "    a b c d e f g h" << std::endl;
-}
-int NodeMove::evaluateBoard() {
-    int score = 0;
-    GeneralEvaluator* evaluator = new GeneralEvaluator();
-    score = evaluator->evaluate(&board, board.sideToMove());
-    delete evaluator;
-    return score;
-}
-float NodeMove::minimax(GeneralEvaluator *evaluator, Color rootColor) {
-
-    auto [reason, result] = board.isGameOver();
-    if (result != chess::GameResult::NONE) {
-        if (result == chess::GameResult::WIN) {
-            return (board.sideToMove() == chess::Color::WHITE) ? -10000 : 10000;
-        } else if (result == chess::GameResult::DRAW) {
-            return 0;
-        }
-    }
-
-
-    if (currentDepth == MAX_DEPTH) {
-        eval = evaluator->evaluate(&board, rootColor);
-        return eval;
-    }
-
-
-    if (this->board.sideToMove() == chess::Color::WHITE) {
-        float bestValue = -99999;
-        for (int i = 0; i < childIndex; ++i) {
-            if (childs[i] != nullptr) {
-                float value = childs[i]->minimax(evaluator, rootColor); 
-                bestValue = std::max(bestValue, value);
-            }
-        }
-        eval = bestValue;
-        return bestValue;
-    }
-
-    else {
-        float bestValue = 99999;
-        for (int i = 0; i < childIndex; ++i) {
-            if (childs[i] != nullptr) {
-                float value = childs[i]->minimax(evaluator, rootColor); 
-                bestValue = std::min(bestValue, value);
-            }
-        }
-        eval = bestValue;
-        return bestValue;
-    }
-}
-chess::Move NodeMove::getBestMove(float bestScore) {
-    chess::Move bestMove;
-    for (int i = 0; i < MAX_BRANCH; ++i) {
-        NodeMove* child = this->childs[i];
-        if (child != nullptr && child->eval == bestScore) {
-            bestMove = child->lastMove; // Movimiento que llevó al mejor nodo
-            break;
-        }
-    }
-    return bestMove;
-}
 void NodeMove::printEvaluationsOfChildren() const {
-    std::cout << "Evaluaciones de los movimientos generados desde este nodo:" << std::endl;
-
-    for (int i = 0; i < childIndex; ++i) {
-        if (childs[i] != nullptr) {
-            std::cout << "Movimiento: " << childs[i]->lastMove
-                      << " | Evaluación: " << childs[i]->eval << std::endl;
-        }
+    std::cout << "Child move evaluations:\n";
+    for (size_t i = 0; i < child_count_; ++i) {
+        std::cout << "Move: " << children_[i]->last_move_
+                  << " | Eval: " << children_[i]->eval_ << "\n";
     }
 }
+
 void NodeMove::printBoardsAndEvaluationsOfChildren() const {
-    std::cout << "Tableros generados por los movimientos de este nodo:" << std::endl;
-
-    for (int i = 0; i < childIndex; ++i) {
-        if (childs[i] != nullptr) {
-            // Crear un evaluador para calcular la evaluación del hijo
-            GeneralEvaluator evaluator;
-            float evaluation = evaluator.evaluate(&childs[i]->board, childs[i]->board.sideToMove());
-
-            // Imprimir el movimiento, evaluación y tablero
-            std::cout << "Movimiento: " << childs[i]->lastMove
-                      << " | Evaluación: " << evaluation << std::endl;
-            childs[i]->printBoard();
-            std::cout << "----------------------------------------" << std::endl;
-        }
+    std::cout << "Child positions:\n";
+    for (size_t i = 0; i < child_count_; ++i) {
+        GeneralEvaluator evaluator;
+        float evaluation = evaluator.evaluate(&children_[i]->board_, children_[i]->board_.sideToMove());
+        
+        std::cout << "Move: " << children_[i]->last_move_
+                  << " | Eval: " << evaluation << "\n";
+        children_[i]->printBoard();
+        std::cout << "----------------------------------------\n";
     }
-}
-float NodeMove::getEval() const {
-    return eval;
-}
-
-int NodeMove::getChildIndex() const {
-    return childIndex;
-}
-
-NodeMove* NodeMove::getChild(int index) const {
-    if (index >= 0 && index < MAX_BRANCH) {
-        return childs[index];
-    }
-    return nullptr;
-}
-
-chess::Move NodeMove::getLastMove() const {
-    return lastMove;
 }
