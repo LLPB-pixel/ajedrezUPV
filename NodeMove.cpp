@@ -74,6 +74,7 @@ float NodeMove::minimax(GeneralEvaluator *evaluator) {
 
 
     if (currentDepth == MAX_DEPTH) {
+        eval = evaluator->evaluate(&board, board.sideToMove());
         return evaluator->evaluate(&board, board.sideToMove());
     }
 
@@ -86,6 +87,7 @@ float NodeMove::minimax(GeneralEvaluator *evaluator) {
                 bestValue = std::max(bestValue, value);
             }
         }
+        eval = bestValue;
         return bestValue;
     }
 
@@ -97,7 +99,19 @@ float NodeMove::minimax(GeneralEvaluator *evaluator) {
                 bestValue = std::min(bestValue, value);
             }
         }
+        eval = bestValue;
         return bestValue;
     }
+}
+chess::Move NodeMove::getBestMove(float bestScore) {
+    chess::Move bestMove;
+    for (int i = 0; i < MAX_BRANCH; ++i) {
+        NodeMove* child = this->childs[i];
+        if (child != nullptr && child->eval == bestScore) {
+            bestMove = child->lastMove; // Movimiento que llevó al mejor nodo
+            break;
+        }
+    }
+    return bestMove;
 }
 
