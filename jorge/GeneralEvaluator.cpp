@@ -5,10 +5,24 @@ using namespace chess;
 GeneralEvaluator::GeneralEvaluator() {}
 
 float GeneralEvaluator::evaluate(const Board *board, const Color color) {
-    // Lleva la formula y suma todas las demas
-    return 0.0;
-}
+    float score = 0.0f;
 
+    // Diferencia de material y posición
+    float materialScore = positionOfThePiecesAndMaterial(board);
+    // Seguridad del rey
+    float kingSafetyScore = safe_king(board, color) - safe_king(board, ~color);
+    // Estructura de peones
+    float pawnStructureScore = pawn_structure(board, color) - pawn_structure(board, ~color);
+    // Control de casillas importantes
+    float controlScore = control(board, color);
+    // Suma ponderada (puedes ajustar los pesos según resultados de pruebas)
+    score += 1.0f * materialScore;
+    score += 0.8f * kingSafetyScore;
+    score += 0.3f * pawnStructureScore;
+    score += 0.5f * controlScore;
+
+    return score;
+}
 float GeneralEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
     float whiteMaterial = 0;
     float blackMaterial = 0;
