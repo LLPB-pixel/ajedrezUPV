@@ -51,12 +51,12 @@ void NodeMove::printBoard(Board &board) const {
 
 
 float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_color) {
-    if (auto [reason, result] = board->isGameOver(); result != GameResult::NONE) {
-        if (result == GameResult::WIN) {
-            return (board->sideToMove() == Color::WHITE) ? -10000.0f : 10000.0f;
-        }
-        return 0.0f; // DRAW
+    auto [reason, result] = board->isGameOver();
+    if(result != GameResult::NONE) {
+        eval_ = evaluator.evaluate(board, root_color);
+        return eval_;
     }
+
 
     if (current_depth_ == MAX_DEPTH) {
         eval_ = evaluator->evaluate(board, root_color);
@@ -86,17 +86,12 @@ float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_co
     }
 }
 float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float alpha, float beta, Color root_color, Board *board) {
-    // Condiciones de fin del juego
     auto [reason, result] = board->isGameOver();
-    if (result != GameResult::NONE) {
-        if (result == GameResult::WIN) {
-            return (board->sideToMove() == Color::WHITE) ? -10000.0f : 10000.0f;
-        }
-        return 0.0f; // DRAW
-        
+    if(result != GameResult::NONE) {
+        eval_ = evaluator.evaluate(board, root_color);
+        return eval_;
     }
 
-    // Condición de profundidad máxima
     if (current_depth_ == MAX_DEPTH) {
         eval_ = evaluator->evaluate(board, root_color);
         return eval_;
