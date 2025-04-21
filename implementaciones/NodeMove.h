@@ -5,26 +5,28 @@
 #include "GeneralEvaluator.h"
 #include <array>
 #include <memory>
+#include <thread>
+#include <mutex>
 
 namespace chess {
 
-constexpr int MAX_DEPTH = 4;
+constexpr int MAX_DEPTH = 5;
 constexpr int MAX_BRANCH = 100;
 
 class NodeMove {
 private:
-    // Core data members
+    //datos importantes
     int current_depth_;
     NodeMove* parent_;
     Move last_move_;
     float eval_;
     
-    // Child storage
+    //hijos
     std::array<std::unique_ptr<NodeMove>, MAX_BRANCH> children_;
     size_t child_count_ = 0;
 
 public:
-    // Construction
+    // Constructores y destructor
     NodeMove(Board *board, NodeMove* parent = nullptr);
     ~NodeMove() = default;
     
@@ -36,7 +38,7 @@ public:
     void printBoard(Board &board) const;
     int evaluateBoard() const;
     float minimax(GeneralEvaluator* evaluator, Board *board, Color root_color);
-    float alphaBeta(GeneralEvaluator *evaluator, float alpha, float beta, Color root_color, Board *board);
+    float alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta, Color root_color, Board* board, std::mutex* alphaBetaMutex);
     chess::Move getBestMove(float best_score) const;
     
     // Getters varios
@@ -50,6 +52,9 @@ public:
     NodeMove* getChild(size_t index) const { 
         return (index < child_count_) ? children_[index].get() : nullptr; 
     }
+    NodeMove* getChildByMove(const Move& move);
+    void rebuildUntilDepth(Board* board);
+
     chess::Move getLastMove() const { 
         return last_move_; 
     }
