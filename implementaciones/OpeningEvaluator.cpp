@@ -20,18 +20,18 @@ float OpeningEvaluator::evaluate(const Board *board, const Color color) {
     auto kingSafetyFutureOpp = std::async(&OpeningEvaluator::safe_king, this, board, ~color);
     auto controlFuture = std::async(&OpeningEvaluator::control, this, board, color);
     auto controlFutureOpp = std::async(&OpeningEvaluator::control, this, board, ~color);
-    auto pawnStructureFuture = std::async(&OpeningEvaluator::pawn_structure, this, board, color);
-    auto pawnStructureFutureOpp = std::async(&OpeningEvaluator::pawn_structure, this, board, ~color);
+    //auto pawnStructureFuture = std::async(&OpeningEvaluator::pawn_structure, this, board, color);
+    //auto pawnStructureFutureOpp = std::async(&OpeningEvaluator::pawn_structure, this, board, ~color);
 
     float materialScore = materialFuture.get();
     float kingSafetyScore = kingSafetyFutureWe.get() - kingSafetyFutureOpp.get();
     float controlScore = controlFuture.get() - controlFutureOpp.get();
-    float pawnStructureScore = pawnStructureFuture.get() - pawnStructureFutureOpp.get();
+    //float pawnStructureScore = pawnStructureFuture.get() - pawnStructureFutureOpp.get();
 
     score += 1.0f * materialScore;
     score += 0.2f * kingSafetyScore;
     score += 1.2f * controlScore;
-    score += 0.3f * pawnStructureScore;
+    //score += 0.3f * pawnStructureScore;
 
     return score;
 }
@@ -54,5 +54,6 @@ float OpeningEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
 
     return whiteMaterial - blackMaterial;
 }
+
 
 
