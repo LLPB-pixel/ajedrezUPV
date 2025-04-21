@@ -1,4 +1,6 @@
 #include "GeneralEvaluator.h"
+#include "OpeningEvaluator.h"
+#include "EndgameEvaluator.h"
 #include <iostream> 
 #include <future>
 
@@ -6,33 +8,18 @@ using namespace chess;
 GeneralEvaluator::GeneralEvaluator() {}
 
 float GeneralEvaluator::evaluate(const Board *board, const Color color) {
-    if(board->isGameOver().second == chess::GameResult::WIN) {
-        return color == chess::Color::WHITE ? -10000.0f : 10000.0f;
+    // Verificar si hay damas en el tablero
+    bool hasQueens = !board->pieces(chess::PieceType::QUEEN, chess::Color::WHITE).empty() ||
+                     !board->pieces(chess::PieceType::QUEEN, chess::Color::BLACK).empty();
+
+    // Delegar la evaluación
+    if (hasQueens) {
+        OpeningEvaluator openingEvaluator;
+        return openingEvaluator.evaluate(board, color);
+    } else {
+        EndgameEvaluator endgameEvaluator;
+        return endgameEvaluator.evaluate(board, color);
     }
-    else if(board->isGameOver().second == chess::GameResult::DRAW) {
-        return 0.0f;
-    }
-    float score = 0.0f;
-
-    auto materialFuture = std::async(&GeneralEvaluator::positionOfThePiecesAndMaterial, this, board);
-    auto kingSafetyFutureWe = std::async(&GeneralEvaluator::safe_king, this, board, color);
-    auto kingSafetyFutureOpp = std::async(&GeneralEvaluator::safe_king, this, board, ~color);
-    auto controlFuture = std::async(&GeneralEvaluator::control, this, board, color);
-    auto controlFutureOpp = std::async(&GeneralEvaluator::control, this, board, ~color);
-    //auto pawnStructureFuture = std::async(&GeneralEvaluator::pawn_structure, this, board, color);
-    //auto pawnStructureFutureOpp = std::async(&GeneralEvaluator::pawn_structure, this, board, ~color);
-    //auto pawnStructureScore = pawnStructureFuture.get() - pawnStructureFutureOpp.get();
-    
-    float materialScore = materialFuture.get();
-    float kingSafetyScore = kingSafetyFutureWe.get() - kingSafetyFutureOpp.get();
-    float controlScore = controlFuture.get() - controlFutureOpp.get();
-
-    score += 1.0f * materialScore;
-    score += 0.05f * kingSafetyScore;
-    //score += 0.05f * pawnStructureScore;
-    score += 1.0f * controlScore;
-
-    return score;
 }
 
 float GeneralEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
@@ -69,6 +56,7 @@ float GeneralEvaluator::evaluatePieceType(
         int file = sq.file();
         if (type == chess::PieceType::PAWN) {
             material += 0.95 + 0.05 * (color == chess::Color::WHITE ? rank : (7 - rank)); // no tocar fdo: LLORENÇ
+            material += importance[rank][file]*1.2f;
         } else {
             material += baseValue + importance[rank][file];
         }
