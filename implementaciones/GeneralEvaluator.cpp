@@ -1,5 +1,6 @@
 #include "GeneralEvaluator.h"
 #include <iostream> 
+#include <future>
 
 using namespace chess;
 GeneralEvaluator::GeneralEvaluator() {}
@@ -13,20 +14,22 @@ float GeneralEvaluator::evaluate(const Board *board, const Color color) {
     }
     float score = 0.0f;
 
-    // Diferencia de material y posición
-    float materialScore = positionOfThePiecesAndMaterial(board);
-    // Seguridad del rey
-    float kingSafetyScore = safe_king(board, color) - safe_king(board, ~color);
-    // Estructura de peones
+    auto materialFuture = std::async(&GeneralEvaluator::positionOfThePiecesAndMaterial, this, board);
+    auto kingSafetyFutureWe = std::async(&GeneralEvaluator::safe_king, this, board, color);
+    auto kingSafetyFutureOpp = std::async(&GeneralEvaluator::safe_king, this, board, ~color);
+    auto controlFuture = std::async(&GeneralEvaluator::control, this, board, color);
+    auto controlFutureOpp = std::async(&GeneralEvaluator::control, this, board, ~color);
+    //auto pawnStructureFuture = std::async(&GeneralEvaluator::pawn_structure, this, board, color);
+    //auto pawnStructureFutureOpp = std::async(&GeneralEvaluator::pawn_structure, this, board, ~color);
+    //auto pawnStructureScore = pawnStructureFuture.get() - pawnStructureFutureOpp.get();
+    
+    float materialScore = materialFuture.get();
+    float kingSafetyScore = kingSafetyFutureWe.get() - kingSafetyFutureOpp.get();
+    float controlScore = controlFuture.get() - controlFutureOpp.get();
 
-    float pawnStructureScore = 0.0f;
-    // Control de casillas importantes
-
-    float controlScore = control(board, color) - control(board, ~color);
-    // Suma ponderada (puedes ajustar los pesos según resultados de pruebas)
     score += 1.0f * materialScore;
     score += 0.05f * kingSafetyScore;
-    score += 0.05f * pawnStructureScore;
+    //score += 0.05f * pawnStructureScore;
     score += 1.0f * controlScore;
 
     return score;
