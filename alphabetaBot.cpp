@@ -3,6 +3,7 @@
 #include "chess.hpp"
 #include <iostream>
 #include <string>
+#include <mutex>
 
 void printBoard(const chess::Board& board) {
     std::cout << "  +-----------------+\n";
@@ -27,6 +28,7 @@ bool isThisMoveLegal(const chess::Board& board, const chess::Move& move) {
 
 int main() {
     chess::Board board(chess::constants::STARTPOS);
+    NodeMove* rootNode(&board, nullptr);
     GeneralEvaluator evaluator;
 
     std::cout << "¡Bienvenido al juego de ajedrez!\n";
@@ -56,18 +58,22 @@ int main() {
             }
 
             board.makeMove(move);
+
             printBoard(board);
         } else {
             // Engine turn
             std::cout << "Calculando el movimiento del motor...\n";
 
-            NodeMove rootNode(&board, nullptr);
+            
             float alpha = -99999.0f;
             float beta = 99999.0f;
 
             // Llamada al algoritmo Alpha-Beta
-            float bestScore = rootNode.alphaBeta(&evaluator, alpha, beta, board.sideToMove(), &board);
-            chess::Move bestMove = rootNode.getBestMove(bestScore);
+            std::mutex alphaBetaMutex;
+            float bestScore = rootNode->alphaBeta(&evaluator, &alpha, &beta, board.sideToMove(), &board, &alphaBetaMutex);
+            chess::Move bestMove = rootNode->getBestMove(bestScore);
+            NodeMove* rootNode = rootNode->getChildByMove(bestMove);
+            rootNode->rebuildUntilDepth(&board);
 
             
             std::cout << "El motor juega: " << bestMove << "\n";
