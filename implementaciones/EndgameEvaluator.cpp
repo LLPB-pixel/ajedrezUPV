@@ -17,20 +17,20 @@ float EndgameEvaluator::evaluate(const Board *board, const Color color) {
     auto kingSafetyFutureOpp = std::async(&EndgameEvaluator::safe_king, this, board, ~color);
     auto controlFuture = std::async(&EndgameEvaluator::control, this, board, color);
     auto controlFutureOpp = std::async(&EndgameEvaluator::control, this, board, ~color);
-    auto pawnStructureFutureWe = std::async(&EndgameEvaluator::pawn_structure, this, board, color);
-    auto pawnStructureFutureOpp = std::async(&EndgameEvaluator::pawn_structure, this, board, ~color);
+    //auto pawnStructureFutureWe = std::async(&EndgameEvaluator::pawn_structure, this, board, color);
+    //auto pawnStructureFutureOpp = std::async(&EndgameEvaluator::pawn_structure, this, board, ~color);
 
     // Obtener los resultados
     float materialScore = materialFuture.get();
     float kingSafetyScore = kingSafetyFutureWe.get() - kingSafetyFutureOpp.get();
     float controlScore = controlFuture.get() - controlFutureOpp.get();
-    float pawnStructureScore = pawnStructureFutureWe.get() - pawnStructureFutureOpp.get();
+    //float pawnStructureScore = pawnStructureFutureWe.get() - pawnStructureFutureOpp.get();
 
-    // Calcular el puntaje final
+
     score += 1.0f * materialScore;
     score += 1.5f * kingSafetyScore;
     score += 0.8f * controlScore;
-    score += 1.2f * pawnStructureScore;
+    //score += 1.2f * pawnStructureScore;
 
     return score;
 }
@@ -53,6 +53,12 @@ float EndgameEvaluator::positionOfThePiecesAndMaterial(const Board *board) {
     blackMaterial += evaluatePieceType(board, chess::PieceType::ROOK, chess::Color::BLACK, 5.0, black_importance);
     blackMaterial += evaluatePieceType(board, chess::PieceType::QUEEN, chess::Color::BLACK, 9.0, black_importance);
     blackMaterial += evaluatePieceType(board, chess::PieceType::KING, chess::Color::BLACK, 0.0, king_endgame_heatmap);
+
+    return whiteMaterial - blackMaterial;
+}
+
+EndgameEvaluator::~EndgameEvaluator() {}
+
 
     return whiteMaterial - blackMaterial;
 }
