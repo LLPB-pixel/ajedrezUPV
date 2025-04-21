@@ -7,18 +7,9 @@ class OpeningEvaluator : public GeneralEvaluator {
 public:
     OpeningEvaluator();
     float evaluate(const Board *board, const Color color) override;
-    float positionOfThePiecesAndMaterial(const Board *board);
-    float pawn_structure(const Board *board, const Color color);
-    float safe_king(const Board *board, const Color color);
-    float control(const Board *board, const Color color);
+    float positionOfThePiecesAndMaterial(const Board *board) override;
     ~OpeningEvaluator();
-
-private:
-    chess::Bitboard getSeenSquares(const chess::Board *board, chess::Color color);
-    chess::Bitboard getControlledSquares(const chess::Board *board, chess::Color color);
-    chess::Bitboard getEnemySeenSquaresIgnoringOwnPieces(const Board *board, Color enemyColor);
-    float evaluatePieceType(const Board* board, chess::PieceType type, chess::Color color, float baseValue, const float importance[8][8]);
-
+    private:
     // Mapas de calor específicos para apertura
     static constexpr float white_pawn_heatmap[8][8] = {
         {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
