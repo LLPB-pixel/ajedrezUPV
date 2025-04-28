@@ -1,0 +1,28 @@
+# ajedrezUPV
+
+**ajedrezUPV** es un proyecto de inteligencia artificial aplicada al ajedrez, desarrollado inicialmente en el marco de la Universitat Politècnica de València (UPV).  
+Este motor de ajedrez tiene como objetivo fomentar el estudio de algoritmos de decisión, heurísticas de evaluación y técnicas de programación de motores de juego.
+
+## Características
+
+- Implementación de motor de ajedrez propio
+- Algoritmos de búsqueda y evaluación heurística
+- Código modular y extensible
+- Enfocado en la investigación educativa y la práctica universitaria
+
+## Requisitos
+
+- Lenguaje: C++23
+- Usamos Disservin (https://disservin.github.io/chess-library/), que nos implementa las reglas, entre otras cosasmuy útiles.
+
+## Instalación
+Podéis instalarlo así usando git:
+bash
+git clone https://github.com/LLPB-pixel/ajedrezUPV.git
+cd ajedrezUPV
+
+O manualmente descargando lo que hay en implementaciones.
+En cualquier caso es necesario compilar con:
+g++ [versiondelbot] NodeMove.cpp GeneralEvaluator.cpp OpeningEvaluator.cpp EndgameEvaluator.cpp 
+
+Cuando desarrolle la IA habrá que compilar de forma distinnta, lógicamente
