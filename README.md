@@ -24,5 +24,19 @@ cd ajedrezUPV
 O manualmente descargando lo que hay en implementaciones.
 En cualquier caso es necesario compilar con:
 g++ [versiondelbot] NodeMove.cpp GeneralEvaluator.cpp OpeningEvaluator.cpp EndgameEvaluator.cpp 
+Saldrá una aplicación de consola. Sólo acepta jugadas en notación UCI. ( https://es.wikipedia.org/wiki/Interfaz_Universal_de_Ajedrez )
 
-Cuando desarrolle la IA habrá que compilar de forma distinnta, lógicamente
+Cuando desarrolle la IA habrá que compilar de forma distinnta, lógicamente.
+Para cualquier duda, bug, enviadme un correo a perezllorenc@gmail.com y me pondré en contacto contigo. 
+
+
+## Licencia
+Este proyecto está licenciado bajo la [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
+![Licencia](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)
+
+
+
+
+
+
+
