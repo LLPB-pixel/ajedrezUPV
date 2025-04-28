@@ -1,6 +1,6 @@
 # ajedrezUPV
 
-**ajedrezUPV** es un proyecto de inteligencia artificial aplicada al ajedrez, desarrollado inicialmente en el marco de la Universitat Politècnica de València (UPV).  
+**ajedrezUPV** es un proyecto de inteligencia artificial aplicada al ajedrez, desarrollado en el marco de la Universitat Politècnica de València (UPV).  
 Este motor de ajedrez tiene como objetivo fomentar el estudio de algoritmos de decisión, heurísticas de evaluación y técnicas de programación de motores de juego.
 
 ## Características
