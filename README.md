@@ -13,11 +13,12 @@ Este motor de ajedrez tiene como objetivo fomentar el estudio de algoritmos de d
 ## Requisitos
 
 - Lenguaje: C++23
-- Usamos Disservin (https://disservin.github.io/chess-library/), que nos implementa las reglas, entre otras cosasmuy útiles.
+- Usamos Disservin (https://disservin.github.io/chess-library/), que nos implementa las reglas, entre otras cosas muy útiles.
+- Usamos Json C++ (https://github.com/nlohmann/json), que nos ayuda a leer archivos jsonl de la database de lichess. 
 
 ## Instalación
 Podéis instalarlo así usando git:
-bash
+
 git clone https://github.com/LLPB-pixel/ajedrezUPV.git
 cd ajedrezUPV
 
@@ -27,7 +28,7 @@ g++ [versiondelbot] NodeMove.cpp GeneralEvaluator.cpp OpeningEvaluator.cpp Endga
 Saldrá una aplicación de consola. Sólo acepta jugadas en notación UCI. ( https://es.wikipedia.org/wiki/Interfaz_Universal_de_Ajedrez )
 
 Cuando desarrolle la IA habrá que compilar de forma distinnta, lógicamente.
-Para cualquier duda, bug, enviadme un correo a perezllorenc@gmail.com y me pondré en contacto contigo. 
+Para cualquier duda, bug, enviadme un correo a perezllorenc@gmail.com
 
 
 ## Licencia
