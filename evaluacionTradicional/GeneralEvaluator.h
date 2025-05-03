@@ -1,7 +1,7 @@
 #ifndef GENERALEVALUATOR_H
 #define GENERALEVALUATOR_H
 
-#include "chess.hpp"
+#include "../include/chess.hpp"
 #include "Evaluator.h"
 using namespace chess;
 
