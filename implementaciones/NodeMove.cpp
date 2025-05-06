@@ -6,14 +6,28 @@
 #include <mutex>
 
 using namespace chess;
+std::mutex cout_mutex;
 
 NodeMove::NodeMove(Board *board, NodeMove* parent) : 
     parent_(parent),
     current_depth_(parent ? parent->current_depth_ + 1 : 0) {
     
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << "Creando nodo en profundidad: " << current_depth_ 
+                    << " - Hilo: " << std::this_thread::get_id() << "\n";
+    }
+
     if (current_depth_ == 1) {
         Movelist moves;
         movegen::legalmoves(moves, *board);
+
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << "Profundidad 1 - Movimientos posibles: " << moves.size() 
+                      << " - MAX_BRANCH: " << MAX_BRANCH << "\n";
+        }
+
         size_t move_count = moves.size();
         size_t num_threads = std::min((size_t)std::thread::hardware_concurrency(), move_count);
         if (num_threads == 0) num_threads = 1; 
@@ -27,6 +41,14 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
             for (size_t i = start; i < end && i < move_count; ++i) {
                 Move move = moves[i];
                 local_board.makeMove(move);
+
+                {
+                    std::lock_guard<std::mutex> lock(cout_mutex);
+                    std::cout << "Hilo " << std::this_thread::get_id() 
+                              << " procesando movimiento: " << move 
+                              << " en profundidad 1\n";
+                }
+
                 auto child = std::make_unique<NodeMove>(&local_board, this);
                 local_board.unmakeMove(move);
                 child->last_move_ = move;
@@ -34,6 +56,14 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
                 std::lock_guard<std::mutex> lock(child_mutex);
                 if (child_count_ < MAX_BRANCH) {
                     children_[child_count_++] = std::move(child);
+                    
+                    std::lock_guard<std::mutex> cout_lock(cout_mutex);
+                    std::cout << "Hijo añadido en profundidad 1. Total hijos: " 
+                              << child_count_ << "\n";
+                } else {
+                    std::lock_guard<std::mutex> cout_lock(cout_mutex);
+                    std::cout << "MAX_BRANCH alcanzado en profundidad 1. Movimiento omitido: " 
+                              << move << "\n";
                 }
             }
         };
@@ -54,19 +84,61 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
         Movelist moves;
         movegen::legalmoves(moves, *board);
 
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << "Profundidad " << current_depth_ 
+                      << " - Movimientos: " << moves.size() 
+                      << " - MAX_BRANCH: " << MAX_BRANCH << "\n";
+        }
+
         for (const Move& move : moves) {
-            if (child_count_ >= MAX_BRANCH) break;
+            if (child_count_ >= MAX_BRANCH) {
+                std::lock_guard<std::mutex> lock(cout_mutex);
+                std::cout << "MAX_BRANCH alcanzado en profundidad " 
+                          << current_depth_ << "\n";
+                break;
+            }
             
             
             board->makeMove(move);
             children_[child_count_] = std::make_unique<NodeMove>(board, this);
             board->unmakeMove(move);
             children_[child_count_]->last_move_ = move;
+
+            {
+                std::lock_guard<std::mutex> lock(cout_mutex);
+                std::cout << "Añadiendo hijo en profundidad " << current_depth_
+                          << " - Movimiento: " << move 
+                          << " - Hijos actuales: " << child_count_ + 1 << "\n";
+            }
+
             child_count_++;
         }
+
+    }
+}
+
+void NodeMove::printTree(int indent) const {
+    std::string spacing(indent, ' ');
+    
+    std::lock_guard<std::mutex> lock(cout_mutex);
+    std::cout << spacing << "Nodo profundidad " << current_depth_ 
+              << " - Movimiento: " << last_move_ 
+              << " - Hijos: " << child_count_ 
+              << " - Eval: " << eval_ << "\n";
+    
+    for (size_t i = 0; i < child_count_; ++i) {
+        children_[i]->printTree(indent + 4);
     }
 }
 void NodeMove::rebuildUntilDepth(Board* board) {
+
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << "Rebuild en profundidad: " << current_depth_ 
+                  << " - Hilo: " << std::this_thread::get_id() << "\n";
+    }
+
     this->current_depth_ = this->parent_->current_depth_;
     if(this->current_depth_ < MAX_DEPTH -1){
         //no hace falta generar los hijos de este nodo
@@ -79,6 +151,13 @@ void NodeMove::rebuildUntilDepth(Board* board) {
         //hace falta generar los hijos de este nodo
         Movelist moves;
         movegen::legalmoves(moves, *board);
+
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << "Rebuild en MAX_DEPTH-1 - Movimientos: " << moves.size() 
+                      << "\n";
+        }
+
         size_t move_count = moves.size();
         size_t num_threads = std::min((size_t)std::thread::hardware_concurrency(), move_count);
         if (num_threads == 0) num_threads = 1;
@@ -295,7 +374,6 @@ float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta
     }
 }
 
-
 chess::Move NodeMove::getBestMove(float best_score) const {
     for (size_t i = 0; i < child_count_; ++i) {
         if (children_[i]->eval_ == best_score) {
@@ -321,5 +399,3 @@ NodeMove* NodeMove::getChildByMove(const Move& move) {
     }
     return nullptr;
 }
-
-

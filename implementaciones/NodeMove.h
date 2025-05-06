@@ -53,6 +53,7 @@ public:
         return (index < child_count_) ? children_[index].get() : nullptr; 
     }
     NodeMove* getChildByMove(const Move& move);
+    void printTree(int indent = 0) const;
     void rebuildUntilDepth(Board* board);
 
     chess::Move getLastMove() const { 
