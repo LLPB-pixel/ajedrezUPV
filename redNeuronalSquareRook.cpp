@@ -238,14 +238,20 @@ struct Network {
     }
 
     float loss(float pred, float target) {
-        float mse = 0.5f * (pred - target) * (pred - target);
-        float reg = l1.regularization_loss() + l2.regularization_loss() +
-                    l3.regularization_loss() + l4.regularization_loss() +
-                    l5.regularization_loss() + l6.regularization_loss() +
-                    out.regularization_loss();
+        // La perdida es MSE que signoifica el error cuadrático medio
+        // y la regularización L2 proviene de la suma de los pesos al cuadrado
+        0.5f * (pred - target) * (pred - target);
+        float reg = std::async(std::launch::async, [&]{ return l1.regularization_loss(); }) + 
+        std::async(std::launch::async, [&]{ return l2.regularization_loss(); }) +
+        std::async(std::launch::async, [&]{ return l3.regularization_loss(); }) +
+        std::async(std::launch::async, [&]{ return l4.regularization_loss(); }) +
+        std::async(std::launch::async, [&]{ return l5.regularization_loss(); }) +
+        std::async(std::launch::async, [&]{ return l6.regularization_loss(); }) +
+        std::async(std::launch::async, [&]{ return out.regularization_loss(); });
         return mse + L2_REGULARIZATION * reg;
     }
 
+    // Método para entrenar la red con una única muestra
     void train(const float* input, float target) {
         // Forward pass
         float pred = forward(input);
@@ -279,108 +285,29 @@ struct Network {
         t++;
     }
     
-    // Método para evaluar la red en un conjunto de validación
-    float evaluate(const std::vector<std::pair<const float*, float>>& validation_data) {
-        float total_loss = 0.0f;
-        for (const auto& sample : validation_data) {
-            float pred = forward(sample.first);
-            total_loss += 0.5f * (pred - sample.second) * (pred - sample.second);
-        }
-        return total_loss / validation_data.size();
-    }
+
 };
 
 // Función para entrenar la red
-void train_network(Network& network, 
-                  const std::vector<std::pair<const float*, float>>& training_data,
-                  const std::vector<std::pair<const float*, float>>& validation_data,
-                  int epochs, int batch_size) {
+// Función para entrenar la red con múltiples épocas sobre un único ejemplo
+void train_network(Network& network, const float* input, float target, int epochs) {
+    std::cout << "Iniciando entrenamiento..." << std::endl;
     
-
+    float initial_loss = network.loss(network.forward(input), target);
+    std::cout << "Pérdida inicial: " << initial_loss << std::endl;
     
     for (int epoch = 0; epoch < epochs; ++epoch) {
-        // Mezclar los datos de entrenamiento
-        std::vector<int> indices(training_data.size());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            indices[i] = i;
-        }
-        std::shuffle(indices.begin(), indices.end(), rng);
+        // Entrenar con la única muestra disponible
+        network.train(input, target);
         
-        // Entrenamiento por lotes
-        float epoch_loss = 0.0f;
-        for (size_t i = 0; i < training_data.size(); i += batch_size) {
-            for (size_t j = i; j < std::min(i + batch_size, training_data.size()); ++j) {
-                size_t idx = indices[j];
-                const auto& sample = training_data[idx];
-                network.train(sample.first, sample.second);
-                
-                // Añadir ruido gaussiano para regularización
-                for (int k = 0; k < INPUT_SIZE; ++k) {
-                    network.grad_input[k] += noise_dist(rng);
-                }
-            }
-        }
-        
-        // Evaluar en el conjunto de validación
-        if (!validation_data.empty()) {
-            float val_loss = network.evaluate(validation_data);
+        // Cada cierto número de épocas, mostrar el progreso
+        if ((epoch + 1) % 100 == 0 || epoch == 0) {
+            float current_loss = network.loss(network.forward(input), target);
             std::cout << "Época " << epoch + 1 << "/" << epochs 
-                     << ", Pérdida de validación: " << val_loss << std::endl;
-        } else {
-            std::cout << "Época " << epoch + 1 << "/" << epochs << " completada." << std::endl;
+                     << ", Pérdida actual: " << current_loss << std::endl;
         }
     }
     
-    std::cout << "Entrenamiento completado." << std::endl;
-}
-
-// Ejemplo de uso
-int main() {
-    srand(time(nullptr));
-    
-    // Inicializar la red
-    Network network;
-    network.init();
-    
-    // Aquí se deberían cargar y preparar los datos
-    std::vector<std::pair<const float*, float>> training_data;
-    std::vector<std::pair<const float*, float>> validation_data;
-    
-    
-    /*
-    // Cargar datos de entrenamiento
-    int num_samples = 1000;
-    for (int i = 0; i < num_samples; ++i) {
-        float* sample = new float[INPUT_SIZE];
-        // Llenar sample con datos...
-        float target = /* calcular target basado en sample *//*;
-        training_data.push_back({sample, target});
-    }
-    
-    // Cargar datos de validación
-    int num_val_samples = 200;
-    for (int i = 0; i < num_val_samples; ++i) {
-        float* sample = new float[INPUT_SIZE];
-        // Llenar sample con datos...
-        float target = /* calcular target basado en sample *//*;
-        validation_data.push_back({sample, target});
-    }
-    */
-    
-    // Entrenar la red
-    // train_network(network, training_data, validation_data, 10, 32);
-    
-  
-    
-    
-    /*
-    for (auto& sample : training_data) {
-        delete[] sample.first;
-    }
-    for (auto& sample : validation_data) {
-        delete[] sample.first;
-    }
-    */
-    
-    return 0;
+    float final_loss = network.loss(network.forward(input), target);
+    std::cout << "Entrenamiento completado. Pérdida final: " << final_loss << std::endl;
 }
