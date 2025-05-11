@@ -4,10 +4,15 @@
 #include <ctime>
 #include <random>
 #include <vector>
-#include <immintrin.h>
 #include <algorithm>
 #include <omp.h>
+#include <fstream>
+#include "json.hpp"
+#include <future>
+#include <string>
+#include <chrono>
 
+using json = nlohmann::json;
 // Tamaño de las capas de la red
 constexpr int INPUT_SIZE = 2565;
 constexpr int H1 = 2048;
@@ -40,6 +45,7 @@ struct AdamParams {
     float m[SIZE];
     float v[SIZE];
     void init() {
+        #pragma omp parallel for
         for (int i = 0; i < SIZE; ++i) { 
             m[i] = 0.0f; v[i] = 0.0f; 
         }
@@ -47,7 +53,6 @@ struct AdamParams {
 };
 
 // Capa de la red
-#pragma pack(push, 32) //evita la fragmentacion interna de la memoria
 template<int IN, int OUT>
 struct Layer {
     alignas(32) float weights[OUT][IN];
@@ -60,6 +65,7 @@ struct Layer {
     AdamParams<OUT * IN> weight_adam;
 
     void init() {
+        #pragma omp parallel for
         for (int i = 0; i < OUT; ++i) {
             biases[i] = ((float)rand() / RAND_MAX - 0.5f) * 0.1f;
             preactivations[i] = 0.0f;
@@ -75,21 +81,10 @@ struct Layer {
     void forward(const float* input, bool apply_relu = true, bool apply_dropout = false) {
         #pragma omp parallel for
         for (int i = 0; i < OUT; ++i) {
-            __m256 sum_vec = _mm256_setzero_ps();
-            int j = 0;
-            for (; j <= IN - 8; j += 8) {
-                __m256 in = _mm256_loadu_ps(input + j);
-                __m256 w = _mm256_loadu_ps(weights[i] + j);
-                sum_vec = _mm256_fmadd_ps(in, w, sum_vec);
-            }
             float sum = biases[i];
-            alignas(32) float temp[8];
-            _mm256_store_ps(temp, sum_vec);
-            for (int k = 0; k < 8; ++k) sum += temp[k];
-            for (; j < IN; ++j) {
+            for (int j = 0; j < IN; ++j) {
                 sum += weights[i][j] * input[j];
             }
-
             preactivations[i] = sum;
             float act = apply_relu ? relu(sum) : sum;
             output[i] = (apply_dropout && dropout_mask()) ? 0.0f : act;
@@ -98,31 +93,12 @@ struct Layer {
 
     float regularization_loss() const {
         float reg = 0.0f;
-        int in_aligned = (IN / 8) * 8; // Process in chunks of 8
-    
         #pragma omp parallel for reduction(+:reg)
         for (int i = 0; i < OUT; ++i) {
-            __m256 sum_vec = _mm256_setzero_ps();
-            int j = 0;
-            for (; j < in_aligned; j += 8) {
-                __m256 w_vec = _mm256_loadu_ps(weights[i] + j);
-                __m256 w_squared_vec = _mm256_mul_ps(w_vec, w_vec);
-                sum_vec = _mm256_add_ps(sum_vec, w_squared_vec);
-            }
-    
-            // Horizontal sum of the vector
-            alignas(32) float temp[8];
-            _mm256_store_ps(temp, sum_vec);
             float local_reg = 0.0f;
-            for (int k = 0; k < 8; ++k) {
-                local_reg += temp[k];
-            }
-    
-            // Handle remaining elements (less than 8)
-            for (; j < IN; ++j) {
+            for (int j = 0; j < IN; ++j) {
                 local_reg += weights[i][j] * weights[i][j];
             }
-    
             reg += local_reg;
         }
         return reg;
@@ -198,7 +174,6 @@ struct Layer {
         }
     }
 };
-#pragma pack(pop)
 
 struct Network {
     Layer<INPUT_SIZE, H1> l1;
@@ -219,12 +194,6 @@ struct Network {
 
     int t; // Contador de pasos para Adam
 
-    void init() {
-        l1.init(); l2.init(); l3.init();
-        l4.init(); l5.init(); l6.init();
-        out.init();
-        t = 1;
-    }
 
     float forward(const float* input) {
         l1.forward(input);
@@ -240,14 +209,18 @@ struct Network {
     float loss(float pred, float target) {
         // La perdida es MSE que signoifica el error cuadrático medio
         // y la regularización L2 proviene de la suma de los pesos al cuadrado
-        0.5f * (pred - target) * (pred - target);
-        float reg = std::async(std::launch::async, [&]{ return l1.regularization_loss(); }) + 
-        std::async(std::launch::async, [&]{ return l2.regularization_loss(); }) +
-        std::async(std::launch::async, [&]{ return l3.regularization_loss(); }) +
-        std::async(std::launch::async, [&]{ return l4.regularization_loss(); }) +
-        std::async(std::launch::async, [&]{ return l5.regularization_loss(); }) +
-        std::async(std::launch::async, [&]{ return l6.regularization_loss(); }) +
-        std::async(std::launch::async, [&]{ return out.regularization_loss(); });
+        float mse = 0.5f * (pred - target) * (pred - target);
+        auto f1 = std::async(std::launch::async, [&] { return l1.regularization_loss(); });
+        auto f2 = std::async(std::launch::async, [&] { return l2.regularization_loss(); });
+        auto f3 = std::async(std::launch::async, [&] { return l3.regularization_loss(); });
+        auto f4 = std::async(std::launch::async, [&] { return l4.regularization_loss(); });
+        auto f5 = std::async(std::launch::async, [&] { return l5.regularization_loss(); });
+        auto f6 = std::async(std::launch::async, [&] { return l6.regularization_loss(); });
+        auto f7 = std::async(std::launch::async, [&] { return out.regularization_loss(); });
+
+
+        float reg = f1.get() + f2.get() + f3.get() + f4.get() + f5.get() + f6.get() + f7.get();
+
         return mse + L2_REGULARIZATION * reg;
     }
 
@@ -255,8 +228,6 @@ struct Network {
     void train(const float* input, float target) {
         // Forward pass
         float pred = forward(input);
-        float loss_value = loss(pred, target);
-        
         // Calcular el gradiente de salida (derivada de MSE)
         float grad_output = pred - target;
         
@@ -284,6 +255,178 @@ struct Network {
         // Incrementar el contador de pasos para Adam
         t++;
     }
+    template<int IN_SIZE, int OUT_SIZE>
+        void serialize_layer(Layer<IN_SIZE, OUT_SIZE>& layer, const std::string& layer_name, json& output_json) {
+            json layer_json;
+            json weights_json = json::array();
+            json biases_json = json::array();
+            
+            // Crear arrays paralelos para pesos
+            #pragma omp parallel
+            {
+                json thread_weights = json::array();
+                
+                #pragma omp for nowait
+                for (int i = 0; i < OUT_SIZE; ++i) {
+                    json row = json::array();
+                    for (int j = 0; j < IN_SIZE; ++j) {
+                        row.push_back(layer.weights[i][j]);
+                    }
+                    
+                    #pragma omp critical
+                    {
+                        weights_json.push_back(row);
+                    }
+                }
+            }
+            
+            // Crear array para sesgos
+            #pragma omp parallel
+            {
+                json thread_biases = json::array();
+                
+                #pragma omp for nowait
+                for (int i = 0; i < OUT_SIZE; ++i) {
+                    #pragma omp critical
+                    {
+                        biases_json.push_back(layer.biases[i]);
+                    }
+                }
+            }
+            
+            layer_json["weights"] = weights_json;
+            layer_json["biases"] = biases_json;
+            output_json[layer_name] = layer_json;
+        };
+    void save_to_json(const std::string& filename) {
+        json network_json;
+        
+        std::cout << "Guardando modelo en " << filename << "..." << std::endl;
+        
+        // Función para serializar una capa en JSON
+        
+        
+        // Usar std::async para paralelizar la serialización de las capas
+        auto f1 = std::async(std::launch::async, [&]{ serialize_layer<INPUT_SIZE, H1>(l1, "layer1", network_json); });
+        auto f2 = std::async(std::launch::async, [&]{ serialize_layer<H1, H2>(l2, "layer2", network_json); });
+        auto f3 = std::async(std::launch::async, [&]{ serialize_layer<H2, H3>(l3, "layer3", network_json); });
+        auto f4 = std::async(std::launch::async, [&]{ serialize_layer<H3, H4>(l4, "layer4", network_json); });
+        auto f5 = std::async(std::launch::async, [&]{ serialize_layer<H4, H5>(l5, "layer5", network_json); });
+        auto f6 = std::async(std::launch::async, [&]{ serialize_layer<H5, H6>(l6, "layer6", network_json); });
+        auto f7 = std::async(std::launch::async, [&]{ serialize_layer<H6, OUTPUT_SIZE>(out, "output", network_json); });
+        
+        // Esperar a que todas las tareas asíncronas se completen
+        f1.wait(); f2.wait(); f3.wait(); f4.wait(); f5.wait(); f6.wait(); f7.wait();
+        
+        // Añadir el contador de pasos de Adam
+        network_json["adam_t"] = t;
+        
+        // Escribir en el archivo
+        std::ofstream file(filename);
+        if (file.is_open()) {
+            file << std::setw(4) << network_json << std::endl;
+            std::cout << "Modelo guardado exitosamente." << std::endl;
+        } else {
+            std::cerr << "Error: No se pudo abrir el archivo para escritura." << std::endl;
+        }
+    }
+    template<int IN_SIZE, int OUT_SIZE>
+    void deserialize_layer(Layer<IN_SIZE, OUT_SIZE>& layer, const json& layer_json) {
+        const json& weights_json = layer_json["weights"];
+        const json& biases_json = layer_json["biases"];
+                
+                // Cargar pesos
+        #pragma omp parallel for
+        for (int i = 0; i < OUT_SIZE; ++i) {
+            const json& row = weights_json[i];
+            for (int j = 0; j < IN_SIZE; ++j) {
+                layer.weights[i][j] = row[j];
+                }
+            }
+                
+                // Cargar sesgos
+            #pragma omp parallel for
+            for (int i = 0; i < OUT_SIZE; ++i) {
+                layer.biases[i] = biases_json[i];
+            }
+                
+                // Inicializar parámetros de Adam
+            layer.bias_adam.init();
+            layer.weight_adam.init();
+    };
+
+    // Inicializar la red desde un archivo JSON
+    bool init_from_json(const std::string& filename) {
+        std::cout << "Cargando modelo desde " << filename << "..." << std::endl;
+        
+        try {
+            std::ifstream file(filename);
+            if (!file.is_open()) {
+                std::cerr << "Error: No se pudo abrir el archivo." << std::endl;
+                return false;
+            }
+            
+            json network_json;
+            file >> network_json;
+            
+            
+            
+            // Usar std::async para paralelizar la carga de las capas
+            auto f1 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer1")) deserialize_layer<INPUT_SIZE, H1>(l1, network_json["layer1"]); 
+            });
+            auto f2 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer2")) deserialize_layer<H1, H2>(l2, network_json["layer2"]); 
+            });
+            auto f3 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer3")) deserialize_layer<H2, H3>(l3, network_json["layer3"]); 
+            });
+            auto f4 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer4")) deserialize_layer<H3, H4>(l4, network_json["layer4"]); 
+            });
+            auto f5 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer5")) deserialize_layer<H4, H5>(l5, network_json["layer5"]); 
+            });
+            auto f6 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("layer6")) deserialize_layer<H5, H6>(l6, network_json["layer6"]); 
+            });
+            auto f7 = std::async(std::launch::async, [&]{ 
+                if (network_json.contains("output")) deserialize_layer<H6, OUTPUT_SIZE>(out, network_json["output"]); 
+            });
+            
+            // Esperar a que todas las tareas asíncronas se completen
+            f1.wait(); f2.wait(); f3.wait(); f4.wait(); f5.wait(); f6.wait(); f7.wait();
+            
+            // Cargar el contador de pasos de Adam
+            if (network_json.contains("adam_t")) {
+                t = network_json["adam_t"];
+            } else {
+                t = 1; // Valor por defecto
+            }
+            
+            std::cout << "Modelo cargado exitosamente." << std::endl;
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Error al cargar el modelo: " << e.what() << std::endl;
+            return false;
+        }
+    }
+    
+    // Modificar el método init para incluir la opción de cargar desde JSON
+    void init(const std::string& json_file = "") {
+        if (!json_file.empty()) {
+            if (init_from_json(json_file)) {
+                return; // La red ya está inicializada desde el archivo JSON
+            }
+            std::cout << "Fallback a inicialización aleatoria..." << std::endl;
+        }
+        
+        // Inicialización estándar aleatoria
+        l1.init(); l2.init(); l3.init();
+        l4.init(); l5.init(); l6.init();
+        out.init();
+        t = 1;
+    }
     
 
 };
@@ -296,6 +439,7 @@ void train_network(Network& network, const float* input, float target, int epoch
     float initial_loss = network.loss(network.forward(input), target);
     std::cout << "Pérdida inicial: " << initial_loss << std::endl;
     
+    #pragma omp parallel for
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // Entrenar con la única muestra disponible
         network.train(input, target);
@@ -310,4 +454,36 @@ void train_network(Network& network, const float* input, float target, int epoch
     
     float final_loss = network.loss(network.forward(input), target);
     std::cout << "Entrenamiento completado. Pérdida final: " << final_loss << std::endl;
+    std::cerr << "train_network completed" << std::endl; // Add this line
+}
+int main(){
+    try {
+        std::cout << "Entrando a main()" << std::endl;
+        Network network;
+        network.init();
+
+        float input[INPUT_SIZE];
+        #pragma omp parallel for
+        for (int i = 0; i < INPUT_SIZE; ++i) {
+            input[i] = static_cast<float>(rand());
+        }
+        std::cout << "Input inicializado" << std::endl;
+
+        float target = 0.5f;
+        train_network(network, input, target, 1000);
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+        network.forward(input);
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+        std::cout << "Tiempo de evaluación de la red neuronal: " << duration.count() << " microsegundos" << std::endl;
+        return 0;
+    } catch (const std::exception& ex) {
+        std::cerr << "Excepción atrapada: " << ex.what() << std::endl;
+        return 252;
+    } catch (...) {
+        std::cerr << "Error desconocido atrapado en main()" << std::endl;
+        return 251;
+    }
 }
