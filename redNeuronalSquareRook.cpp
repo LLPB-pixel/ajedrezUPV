@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
-#include <vector>
 #include <algorithm>
 #include <omp.h>
 #include <fstream>
@@ -433,57 +432,56 @@ struct Network {
 
 // Función para entrenar la red
 // Función para entrenar la red con múltiples épocas sobre un único ejemplo
-void train_network(Network& network, const float* input, float target, int epochs) {
+void train_network(Network* network, const float* input, float target, int epochs) {
     std::cout << "Iniciando entrenamiento..." << std::endl;
     
-    float initial_loss = network.loss(network.forward(input), target);
+    float initial_loss = network->loss(network->forward(input), target);
     std::cout << "Pérdida inicial: " << initial_loss << std::endl;
     
     #pragma omp parallel for
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // Entrenar con la única muestra disponible
-        network.train(input, target);
+        network->train(input, target);
         
         // Cada cierto número de épocas, mostrar el progreso
         if ((epoch + 1) % 100 == 0 || epoch == 0) {
-            float current_loss = network.loss(network.forward(input), target);
+            float current_loss = network->loss(network->forward(input), target);
             std::cout << "Época " << epoch + 1 << "/" << epochs 
                      << ", Pérdida actual: " << current_loss << std::endl;
         }
     }
     
-    float final_loss = network.loss(network.forward(input), target);
+    float final_loss = network->loss(network->forward(input), target);
     std::cout << "Entrenamiento completado. Pérdida final: " << final_loss << std::endl;
-    std::cerr << "train_network completed" << std::endl; // Add this line
 }
-int main(){
-    try {
-        std::cout << "Entrando a main()" << std::endl;
-        Network network;
-        network.init();
+int main() {
+    std::cout << "Entrando a main()" << std::endl;
 
-        float input[INPUT_SIZE];
-        #pragma omp parallel for
-        for (int i = 0; i < INPUT_SIZE; ++i) {
-            input[i] = static_cast<float>(rand());
-        }
-        std::cout << "Input inicializado" << std::endl;
+    Network* network = new Network();  // en el heap
+    network->init();
 
-        float target = 0.5f;
-        train_network(network, input, target, 1000);
+    float* input = new float[INPUT_SIZE];  // en el heap
 
-        auto start_time = std::chrono::high_resolution_clock::now();
-        network.forward(input);
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-        std::cout << "Tiempo de evaluación de la red neuronal: " << duration.count() << " microsegundos" << std::endl;
-        return 0;
-    } catch (const std::exception& ex) {
-        std::cerr << "Excepción atrapada: " << ex.what() << std::endl;
-        return 252;
-    } catch (...) {
-        std::cerr << "Error desconocido atrapado en main()" << std::endl;
-        return 251;
+    #pragma omp parallel for
+    for (int i = 0; i < INPUT_SIZE; ++i) {
+        input[i] = static_cast<float>(rand());
     }
+    std::cout << "Input inicializado" << std::endl;
+
+    float target = 0.5f;
+    train_network(network, input, target, 100);  // pasa un puntero
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+    network->forward(input);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+    std::cout << "Tiempo de evaluación de la red neuronal: "
+              << duration.count() << " microsegundos" << std::endl;
+
+    delete[] input;
+    delete network;
+    return 0;
 }
+//g++ -std=c++17 -O2 -g -fopenmp -march=native -o modificacionesRedNeuronal modificacionesRedNeuronal.cpp -lstdc++fs -pthread
+
