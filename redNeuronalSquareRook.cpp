@@ -25,8 +25,8 @@ constexpr int OUTPUT_SIZE = 1;
 // Parámetros de entrenamiento
 constexpr float DROPOUT_RATE = 0.1f;
 constexpr float NOISE_STDDEV = 0.01f;
-constexpr float L2_REGULARIZATION = 0.0001f;
-constexpr float LEARNING_RATE = 0.001f;
+constexpr float L2_REGULARIZATION = 0.0005f;
+constexpr float LEARNING_RATE = 0.00005f;
 constexpr float BETA1 = 0.9f;
 constexpr float BETA2 = 0.999f;
 constexpr float EPSILON = 1e-8f;
@@ -206,9 +206,15 @@ struct Network {
     }
 
     float loss(float pred, float target) {
-        // La perdida es MSE que signoifica el error cuadrático medio
         // y la regularización L2 proviene de la suma de los pesos al cuadrado
-        float mse = 0.5f * (pred - target) * (pred - target);
+        float error = pred - target;
+
+        // Parámetro delta para Huber Loss, puedes ajustarlo según el rango de tus errores
+        const float delta = 1.0f;  // Ajusta este valor según lo que consideres adecuado
+
+        // Huber loss: Si el error es pequeño, usa MSE; si es grande, usa MAE
+        float huber_loss = (std::abs(error) <= delta) ? 0.5f * error * error : delta * (std::abs(error) - 0.5f * delta);
+
         auto f1 = std::async(std::launch::async, [&] { return l1.regularization_loss(); });
         auto f2 = std::async(std::launch::async, [&] { return l2.regularization_loss(); });
         auto f3 = std::async(std::launch::async, [&] { return l3.regularization_loss(); });
@@ -220,7 +226,7 @@ struct Network {
 
         float reg = f1.get() + f2.get() + f3.get() + f4.get() + f5.get() + f6.get() + f7.get();
 
-        return mse + L2_REGULARIZATION * reg;
+        return huber_loss + L2_REGULARIZATION * reg;
     }
 
     // Método para entrenar la red con una única muestra
@@ -467,21 +473,22 @@ int main() {
         input[i] = static_cast<float>(rand());
     }
     std::cout << "Input inicializado" << std::endl;
-
+    
     float target = 0.5f;
-    train_network(network, input, target, 100);  // pasa un puntero
-
     auto start_time = std::chrono::high_resolution_clock::now();
-    network->forward(input);
+    train_network(network, input, target, 500);  // pasa un puntero
     auto end_time = std::chrono::high_resolution_clock::now();
+    
+    network->forward(input);
+    
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-    std::cout << "Tiempo de evaluación de la red neuronal: "
-              << duration.count() << " microsegundos" << std::endl;
+    std::cout << "Tiempo de entrenamiento: " << duration.count() / 1e6 << " segundos" << std::endl;
+    
 
     delete[] input;
     delete network;
     return 0;
 }
-//g++ -std=c++17 -O2 -g -fopenmp -march=native -o modificacionesRedNeuronal modificacionesRedNeuronal.cpp -lstdc++fs -pthread
+//g++ -std=c++17 -O3 -g -fopenmp -march=native -o modificacionesRedNeuronal modificacionesRedNeuronal.cpp -lstdc++fs -pthread
+
 
