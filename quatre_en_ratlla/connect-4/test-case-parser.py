@@ -7,23 +7,6 @@ HEIGHT = 6
 # para tener mas entradas, y simetria horizontal
 
 
-# Crea el tablero para cada entrada de test
-def construirTablero(smov:str):
-    tablero = np.array([[0 for i in range(WIDTH)] for i2 in range(HEIGHT)])
-    mov = [int(c) for c in smov]
-    l = len(mov)
-    player = 1 if l%2==0 else -1
-    for i in range(l):
-        n = mov[i]-1
-        hacerTurno(tablero, n, 1 if i%2==0 else -1)
-    s = sum(tablero[:,0])
-    return tablero, player
-
-# Pone una pieza en la columna n para el jugador p
-def hacerTurno(t, n, p=1):
-    s = sum(abs(t[:,n]))
-    t[HEIGHT-1-s,n] = p
-
 def test():
     tests = []
     tl = 0
@@ -90,4 +73,43 @@ def applySimetry():
     with open("test/full-no-dup", "w") as f:
         f.writelines("\n".join(sorted([f"{t[0]} {t[1]}" for t in fullTest])))
 
-print(construirTablero("77773516431155341536131644"[::-1])[0])
+def construirTablero(smov:str):
+    tablero = np.array([[0 for i in range(WIDTH)] for i2 in range(HEIGHT)])
+    mov = [int(c) for c in smov]
+    l = len(mov)
+    player = 1 if l%2==0 else -1
+    for i in range(l):
+        n = mov[i]-1
+        hacerTurno(tablero, n, (1 if i%2==0 else -1)*player)
+    s = sum(tablero[:,0])
+    return tablero
+
+# Pone una pieza en la columna n para el jugador p
+def hacerTurno(t, n, p):
+    s = sum(abs(t[:,n]))
+    t[HEIGHT-1-s,n] = p
+
+def loadData(filepath: str):
+    with open(filepath, "r") as f:
+        data = [l.rstrip().split() for l in f.readlines()]
+    fdata = [(construirTablero(l[0]), int(l[1])) for l in data]
+    return fdata
+
+def func(x):
+    return str(x+2)
+
+data = loadData("connect-4/test/dataset")
+
+print(len(data))
+
+for i in range(len(data)):
+    d,s = data[i]
+    dd = np.fliplr(d)
+    if not np.array_equal(dd,d):
+        data.append((dd.flatten(), s))
+    data[i] = (d.flatten(),s)
+
+print(len(data))
+
+with open("connect-4/test/simetria", "w") as f:
+    f.writelines("\n".join([f"{''.join(map(func,t[0].tolist()))} {t[1]}" for t in data]))

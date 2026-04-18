@@ -1,19 +1,21 @@
-import random
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 WIDTH = 7
 HEIGHT = 6
+
 # Internas
-LAYERS = [64, 128]
+LAYERS = [128, 128]
 
 VALIDATION = 0.2
 TEST = 0.1
+
 BATCH = 10
 EPOCHS = 5
 
 # Crea el tablero para cada entrada de test
+# Ya no hace falta
 def construirTablero(smov:str):
     tablero = np.array([[0 for i in range(WIDTH)] for i2 in range(HEIGHT)])
     mov = [int(c) for c in smov]
@@ -33,16 +35,15 @@ def hacerTurno(t, n, p):
 def loadData(filepath: str):
     with open(filepath, "r") as f:
         data = [l.rstrip().split() for l in f.readlines()]
-    fdata = [(construirTablero(l[0]).flatten(), int(l[1])) for l in data]
+    fdata = [([int(c)-2 for c in l[0]], int(l[1])) for l in data]
     return fdata
 
-t = construirTablero("1")
-print(t)
 
-data = loadData("test/dataset")
+data = loadData("connect-4/test/dataset")
 print(len(data))
+print(data[13])
 x = np.array([t[0] for t in data])
-# Dividir entre 27 para normalizar a -1, 1
+# Dividir entre 21 para normalizar a -1, 1
 y = np.array([t[1]/21 for t in data])
 print(len(x), len(y))
 
@@ -63,3 +64,8 @@ model.fit(x_train, y_train, batch_size=BATCH, epochs=EPOCHS, validation_split=VA
 
 # Evaluar modelo
 model.evaluate(x_test, y_test)
+
+# dato = construirTablero("1").flatten()
+# print(dato)
+
+# print(model.predict(dato))
