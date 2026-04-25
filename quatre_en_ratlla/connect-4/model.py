@@ -6,13 +6,13 @@ WIDTH = 7
 HEIGHT = 6
 
 # Internas
-LAYERS = [128, 128]
+LAYERS = [64, 64, 32]
 
 VALIDATION = 0.2
 TEST = 0.1
 
 BATCH = 10
-EPOCHS = 5
+EPOCHS = 30
 
 # Crea el tablero para cada entrada de test
 # Ya no hace falta
@@ -44,28 +44,34 @@ print(len(data))
 print(data[13])
 x = np.array([t[0] for t in data])
 # Dividir entre 21 para normalizar a -1, 1
-y = np.array([t[1]/21 for t in data])
+y = np.array([t[1] for t in data])
 print(len(x), len(y))
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST)
 # Crear modelo
-
+print(x_train[2], y_train[2])
 model = tf.keras.models.Sequential()
 model.add(tf.keras.Input(shape=(WIDTH*HEIGHT,)))
 for l in LAYERS:
     model.add(tf.keras.layers.Dense(l, activation="tanh"))
-model.add(tf.keras.layers.Dense(1, activation="tanh"))
+model.add(tf.keras.layers.Dense(1, activation="linear"))
 
-# Compilar modelo
+callback = tf.keras.callbacks.EarlyStopping(
+    monitor="val_loss",
+    patience=5,
+    restore_best_weights=True
+)
+
+## Compilar modelo
 model.compile(optimizer="adam", loss="mse", metrics=["mae"])
 
-# Entrenar modelo
-model.fit(x_train, y_train, batch_size=BATCH, epochs=EPOCHS, validation_split=VALIDATION)
+## Entrenar modelo
+model.fit(x_train, y_train, batch_size=BATCH, epochs=EPOCHS, validation_split=VALIDATION, callbacks=[callback])
 
-# Evaluar modelo
+## Evaluar modelo
 model.evaluate(x_test, y_test)
 
-# dato = construirTablero("1").flatten()
-# print(dato)
+dato = construirTablero("11").flatten().reshape((1,WIDTH*HEIGHT))
+print(dato)
 
-# print(model.predict(dato))
+print(model.predict(dato))
