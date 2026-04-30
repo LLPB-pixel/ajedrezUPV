@@ -83,9 +83,6 @@ def loadData(filepath: str):
     fdata = [([int(c)-2 for c in l[0]], int(l[1])) for l in data]
     return fdata
 
-def comprobarVictoria(t, n):
-    s = sum(abs(t[:,n]))
-
 if __name__=="__main__":
     data = loadData("connec t-4/test/dataset")
     print(len(data))
