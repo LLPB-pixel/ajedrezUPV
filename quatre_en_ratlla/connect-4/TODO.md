@@ -1,3 +1,3 @@
 Tableros simetricos HECHO
-Comprobador partida ganada
+Comprobador partida ganada HECHO
 Explorador movimientos
