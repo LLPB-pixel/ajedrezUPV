@@ -1,0 +1,165 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{a4paper,total={170mm,257mm},left=20mm,top=20mm}
+
+\title{\textbf{ajedrezUPV - Project Documentation}\\[0.5cm]\large Artificial Intelligence Chess Engine Project}
+\author{Developed at Universitat Politècnica de València (UPV) \\ \texttt{perezllorenc@gmail.com}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Project Overview}
+\textbf{ajedrezUPV} is an AI chess project from UPV. Focus: decision algorithms, heuristic evaluation, game engine programming.
+
+\subsection*{Key Features}
+\begin{itemize}
+    \item Custom chess engine (C++23)
+    \item Alpha-Beta pruning algorithm
+    \item UCI notation support
+    \item Neural network integration
+    \item Modular and extensible code
+    \item Human vs AI gameplay
+\end{itemize}
+
+\section{Repository Structure}
+Reorganized with English names:
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Path} & \textbf{Description} \\
+\hline
+. & Root \\
+README.md & Main documentation \\
+LICENSE & CC BY-NC 4.0 \\
+\hline
+docs/ & Documentation \\
+& FEN.pdf \\
+& PROJECT\_DOCUMENTATION.tex \\
+& PROJECT\_DOCUMENTATION.pdf \\
+\hline
+data/ & Data files \\
+& dataset.csv \\
+& mnist\_loader.py \\
+\hline
+models/ & Models \\
+& modelo.py \\
+\hline
+tests/ & Tests \\
+& prova1.py \\
+\hline
+implementations/ & C++ engine \\
+& alphabetaBot.cpp \\
+& botConMinimaxOptimizado.cpp \\
+& NodeMove.cpp/h \\
+& redNeuronalSquareRook.cpp \\
+\hline
+traditional\_evaluation/ & Evaluators \\
+& EndgameEvaluator.cpp/h \\
+& Evaluator.cpp/h \\
+& GeneralEvaluator.cpp/h \\
+& OpeningEvaluator.cpp/h \\
+\hline
+neural\_network/ & Neural Network \\
+& jsonExtractor.cpp \\
+& json.hpp \\
+& modificacionesRedNeuronal.cpp \\
+\hline
+neural\_network\_jr/ & NN Junior \\
+& jsonExtractorJR.cpp \\
+& redNeuronalJR.cpp \\
+\hline
+connect\_four/ & Connect Four AI \\
+& main.ipynb \\
+& model.py \\
+& test-case-parser.py \\
+& test/ \\
+\hline
+connect\_three/ & Connect Three \\
+& tres\_en\_ratlla1.py \\
+& quatre\_en\_ratlla.py \\
+\hline
+lichess\_db/ & Lichess DB \\
+& chunk\_000 to chunk\_019.jsonl \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Chess Engine}
+C++ implementation with Alpha-Beta algorithm using Disservin library.
+
+\subsection*{Key Components}
+\begin{itemize}
+    \item {\tt alphabetaBot.cpp} - Main game loop, UCI input, console display
+    \item {\tt NodeMove.cpp/h} - Game tree node with alphaBeta() method
+    \item {\tt GeneralEvaluator.cpp} - Position evaluation
+    \item {\tt OpeningEvaluator.cpp} - Opening heuristics
+    \item {\tt EndgameEvaluator.cpp} - Endgame heuristics
+\end{itemize}
+
+\section{Connect Four AI}
+Neural network AI for Connect Four (7x6 board).
+
+\subsection*{Model}
+Input: 42 neurons, Hidden: 64+64+32 (tanh), Output: 1 (linear).
+
+Training: Adam optimizer, MSE loss, Batch=10, Epochs=30, Val=20\%, Test=10\%, Early Stop=5.
+
+\subsection*{Files}
+\begin{itemize}
+    \item {\tt model.py} - NN model with victory check
+    \item {\tt main.ipynb} - Jupyter notebook
+    \item {\tt test-case-parser.py} - Test parser
+    \item {\tt test/} - Datasets
+\end{itemize}
+
+\section{Neural Networks}
+\begin{itemize}
+    \item {\tt neural\_network/} - Main NN with jsonExtractor
+    \item {\tt neural\_network\_jr/} - Junior version
+\end{itemize}
+
+\section{Technologies}
+C++: Disservin, nlohmann/json, STL. Python: TensorFlow, NumPy, scikit-learn, Jupyter.
+
+\section{Installation}
+Compile: g++ implementations/*.cpp traditional\_evaluation/*.cpp -I. -o chess\_engine
+
+Run: ./chess\_engine (UCI notation: e2e4, etc.)
+
+Train Connect Four: cd connect\_four \textbackslash\ and run jupyter notebook main.ipynb or python model.py
+
+\section{License}
+CC BY-NC 4.0 - \url{https://creativecommons.org/licenses/by-nc/4.0/}
+
+Allowed: Share, Adapt, Educational/Personal/Research use.
+
+Not Allowed: Commercial use without permission.
+
+\section{Status}
+Completed: Chess engine, Alpha-Beta, evaluation system, Connect Four AI, victory check.
+
+In Progress: Advanced NN for chess, move explorer, multi-threading, opening book.
+
+\section{Contributing}
+Llorenc Perez - perezllorenc@gmail.com - \url{https://github.com/LLPB-pixel/ajedrezUPV}
+
+\section{Acknowledgments}
+UPV, Disservin, nlohmann, TensorFlow team, Lichess.
+
+\vfill
+\begin{center}
+\textit{Generated: \today} \\
+\url{https://github.com/LLPB-pixel/ajedrezUPV}
+\end{center}
+
+\end{document}
