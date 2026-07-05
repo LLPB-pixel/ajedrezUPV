@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ajedrezUPV - Project Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        h3 { color: #34495e; }
+        code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #3498db; color: white; }
+        blockquote { border-left: 4px solid #3498db; padding-left: 15px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+<h1>ajedrezUPV - Project Documentation</h1>
+<p><strong>ai Chess Engine Project</strong><br />
+Developed at Universitat Politècnica de València (UPV)</p>
+<hr />
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#project-overview">Project Overview</a></li>
+<li><a href="#repository-structure">Repository Structure</a></li>
+<li><a href="#chess-engine-implementation">Chess Engine Implementation</a></li>
+<li><a href="#connect-four-4-en-ratlla-ai">Connect Four (4 en Ratlla) AI</a></li>
+<li><a href="#connect-three-3-en-ratlla-implementation">Connect Three (3 en Ratlla) Implementation</a></li>
+<li><a href="#neural-network-components">Neural Network Components</a></li>
+<li><a href="#traditional-evaluation-system">Traditional Evaluation System</a></li>
+<li><a href="#data-and-resources">Data and Resources</a></li>
+<li><a href="#technologies-and-dependencies">Technologies and Dependencies</a></li>
+<li><a href="#installation-and-usage">Installation and Usage</a></li>
+<li><a href="#license">License</a></li>
+</ol>
+<hr />
+<h2>Project Overview</h2>
+<p><strong>ajedrezUPV</strong> is an artificial intelligence project focused on chess, developed within the framework of the Universitat Politècnica de València (UPV). This chess engine aims to promote the study of decision algorithms, heuristic evaluation, and game engine programming techniques.</p>
+<h3>Key Features</h3>
+<ul>
+<li>Custom chess engine implementation</li>
+<li>Search algorithms and heuristic evaluation</li>
+<li>Modular and extensible code</li>
+<li>Focus on educational research and university practice</li>
+<li>Integration with neural networks for AI decision making</li>
+<li>Support for UCI (Universal Chess Interface) notation</li>
+</ul>
+<hr />
+<h2>Repository Structure</h2>
+<pre><code>ajedrezUPV/
+├── README.md                    # Main project documentation
+├── LICENSE                     # Project license (CC BY-NC 4.0)
+├── docs/
+│   └── FEN.pdf                 # FEN (Forsyth-Edwards Notation) documentation
+│   └── PROJECT_DOCUMENTATION.md # This file
+├── data/
+│   ├── dataset.csv              # Training dataset
+│   └── mnist_loader.py          # MNIST data loader script
+├── models/
+│   └── modelo.py                # Base model implementation
+├── tests/
+│   └── prova1.py                # Test script
+├── implementations/
+│   ├── alphabetaBot.cpp         # Alpha-Beta pruning bot implementation
+│   ├── botConMinimaxOptimizado.cpp # Optimized Minimax bot
+│   ├── NodeMove.cpp             # Move node implementation
+│   ├── NodeMove.h               # Move node header
+│   └── redNeuronalSquareRook.cpp # Neural network for rook movement
+├── traditional_evaluation/
+│   ├── EndgameEvaluator.cpp     # Endgame position evaluator
+│   ├── EndgameEvaluator.h       # Endgame evaluator header
+│   ├── Evaluator.cpp            # Base evaluator
+│   ├── Evaluator.h              # Base evaluator header
+│   ├── GeneralEvaluator.cpp     # General position evaluator
+│   ├── GeneralEvaluator.h       # General evaluator header
+│   ├── OpeningEvaluator.cpp     # Opening position evaluator
+│   └── OpeningEvaluator.h       # Opening evaluator header
+├── neural_network/
+│   ├── jsonExtractor.cpp         # JSON data extractor
+│   ├── json.hpp                 # JSON library header
+│   └── modificacionesRedNeuronal.cpp # Neural network modifications
+├── neural_network_jr/
+│   ├── jsonExtractorJR.cpp      # Junior JSON extractor
+│   └── redNeuronalJR.cpp         # Junior neural network
+├── connect_four/
+│   ├── main.ipynb               # Connect Four Jupyter notebook
+│   ├── model.py                 # Connect Four AI model
+│   ├── test-case-parser.py      # Test case parser
+│   ├── TODO.md                  # Connect Four tasks
+│   └── test/                    # Test datasets
+│       ├── dataset              # Training dataset
+│       ├── dataset-no-sim       # Non-similar dataset
+│       ├── dataset-no-sim2      # Non-similar dataset 2
+│       ├── full-test-without-score # Full test without scores
+│       ├── test-complete        # Complete test
+│       └── tests viejos/        # Old tests
+│           ├── Test_L1_R1
+│           ├── Test_L1_R2
+│           ├── Test_L1_R3
+│           ├── Test_L2_R1
+│           ├── Test_L2_R2
+│           └── Test_L3_R1
+├── connect_three/
+│   ├── comentaris_tres_en_ratlla.docx # Connect Three comments (Catalan)
+│   ├── tres_en_ratlla1.py       # Connect Three implementation
+│   └── quatre_en_ratlla.py       # Another Connect Four variant
+└── lichess_db/
+    ├── chunk_000.jsonl           # Lichess game database chunks
+    ├── chunk_001.jsonl
+    ├── ...
+    └── chunk_019.jsonl
+</code></pre>
+<hr />
+<h2>Chess Engine Implementation</h2>
+<h3>Core Components</h3>
+<p>The chess engine is implemented primarily in C++ with the following key components:</p>
+<h4>1. Alpha-Beta Bot (<code>implementations/alphabetaBot.cpp</code>)</h4>
+<ul>
+<li>Implements the <strong>Alpha-Beta pruning algorithm</strong> for efficient game tree search</li>
+<li>Uses the <strong>UCI (Universal Chess Interface)</strong> protocol for move input</li>
+<li>Integrates with Disservin chess library for board representation and move generation</li>
+<li>Features interactive console interface for human vs. AI gameplay</li>
+<li>Displays chess board in ASCII format</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>printBoard()</code>: Renders the chess board in console
+- <code>isThisMoveLegal()</code>: Validates move legality
+- <code>main()</code>: Game loop with human and AI turns</p>
+<p><strong>Algorithm:</strong></p>
+<pre><code>Alpha-Beta Pruning:
+- Maximizer: AI player (White)
+- Minimizer: Human player (Black)
+- Uses alpha and beta bounds to prune unnecessary branches
+- Depth-limited search with iterative deepening capability
+</code></pre>
+<h4>2. Optimized Minimax Bot (<code>implementations/botConMinimaxOptimizado.cpp</code>)</h4>
+<ul>
+<li>Enhanced implementation of the Minimax algorithm</li>
+<li>Optimized for performance with move ordering heuristics</li>
+<li>Supports multi-threading for parallel search</li>
+</ul>
+<h4>3. Node and Move Management (<code>NodeMove.cpp</code>, <code>NodeMove.h</code>)</h4>
+<ul>
+<li><strong>NodeMove</strong> class represents a node in the game tree</li>
+<li>Each node stores:</li>
+<li>Board state</li>
+<li>List of child nodes (possible moves)</li>
+<li>Evaluation score</li>
+<li>Best move found</li>
+<li>Supports tree rebuilding and depth-limited search</li>
+<li>Implements <code>alphaBeta()</code> method for search</li>
+<li>Provides <code>getChildByMove()</code> for efficient tree traversal</li>
+</ul>
+<hr />
+<h2>Connect Four (4 en Ratlla) AI</h2>
+<h3>Project: Connect Four Neural Network AI</h3>
+<p>This component implements an AI for Connect Four using neural networks.</p>
+<h4>Files</h4>
+<ul>
+<li><strong>main.ipynb</strong>: Jupyter notebook with complete implementation and training</li>
+<li><strong>model.py</strong>: Standalone Python implementation of the Connect Four model</li>
+<li><strong>test-case-parser.py</strong>: Utility for parsing test cases</li>
+<li><strong>test/</strong>: Directory containing various test datasets</li>
+</ul>
+<h4>Model Architecture</h4>
+<pre><code>Input Layer: 42 neurons (7x6 board flattened)
+├── Hidden Layer 1: 64 neurons, tanh activation
+├── Hidden Layer 2: 64 neurons, tanh activation  
+├── Hidden Layer 3: 32 neurons, tanh activation
+└── Output Layer: 1 neuron, linear activation
+
+Training:
+- Optimizer: Adam
+- Loss Function: Mean Squared Error (MSE)
+- Metrics: Mean Absolute Error (MAE)
+- Batch Size: 10
+- Epochs: 30
+- Validation Split: 20%
+- Test Split: 10%
+- Early Stopping: 5 epochs patience
+</code></pre>
+<h4>Key Functions</h4>
+<p><strong>Board Construction (<code>construirTablero</code>)</strong>
+- Creates a 7x6 board from move sequence
+- Handles alternating players (1 and -1)
+- Returns flattened board array</p>
+<p><strong>Move Execution (<code>hacerTurno</code>)</strong>
+- Places a piece in the specified column
+- Automatically finds the correct row (pieces fall to bottom)
+- Handles player alternation</p>
+<p><strong>Victory Check (<code>check_victory</code>)</strong>
+- Checks if a move results in victory
+- Examines all four directions:
+  - Horizontal (4 in a row)
+  - Vertical (4 in a column)
+  - Diagonal \ (4 in a diagonal)
+  - Diagonal / (4 in a diagonal)
+- Uses bidirectional counting for efficiency</p>
+<h4>Training Data</h4>
+<p>The model is trained on datasets in the <code>connect_four/test/</code> directory:
+- Main training dataset: <code>dataset</code>
+- Validation datasets: <code>dataset-no-sim</code>, <code>dataset-no-sim2</code>
+- Full test: <code>full-test-without-score</code>
+- Complete test: <code>test-complete</code></p>
+<hr />
+<h2>Connect Three (3 en Ratlla) Implementation</h2>
+<h3>Files</h3>
+<ul>
+<li><strong>tres_en_ratlla1.py</strong>: Main Connect Three implementation</li>
+<li><strong>quatre_en_ratlla.py</strong>: Another variant (possibly Connect Four)</li>
+<li><strong>comentaris_tres_en_ratlla.docx</strong>: Documentation in Catalan</li>
+</ul>
+<p>This appears to be a simpler implementation for studying the basics of game AI before moving to the more complex Connect Four and Chess implementations.</p>
+<hr />
+<h2>Neural Network Components</h2>
+<h3>Traditional Neural Network (<code>neural_network/</code>)</h3>
+<p>Files:
+- <strong>jsonExtractor.cpp</strong>: Extracts data from JSON files (likely Lichess database)
+- <strong>json.hpp</strong>: JSON library header (nlohmann/json)
+- <strong>modificacionesRedNeuronal.cpp</strong>: Neural network modifications and enhancements</p>
+<h3>Junior Neural Network (<code>neural_network_jr/</code>)</h3>
+<p>Files:
+- <strong>jsonExtractorJR.cpp</strong>: Junior version of JSON extractor
+- <strong>redNeuronalJR.cpp</strong>: Junior neural network implementation</p>
+<p>These components are used for:
+- Extracting and preprocessing chess game data
+- Training neural networks on chess positions
+- Implementing custom neural network architectures for move evaluation</p>
+<hr />
+<h2>Traditional Evaluation System</h2>
+<h3>Components</h3>
+<p>The traditional evaluation system uses heuristic-based approaches to evaluate chess positions without neural networks.</p>
+<h4>1. General Evaluator (<code>traditional_evaluation/GeneralEvaluator.cpp</code>)</h4>
+<ul>
+<li>Evaluates general middlegame positions</li>
+<li>Considers material balance, piece activity, king safety</li>
+<li>Implements standard chess heuristics</li>
+</ul>
+<h4>2. Opening Evaluator (<code>traditional_evaluation/OpeningEvaluator.cpp</code>)</h4>
+<ul>
+<li>Specialized for opening positions</li>
+<li>Encourages development, center control, king safety</li>
+<li>Penalizes premature queen movement and multiple pawn moves</li>
+</ul>
+<h4>3. Endgame Evaluator (<code>traditional_evaluation/EndgameEvaluator.cpp</code>)</h4>
+<ul>
+<li>Specialized for endgame positions</li>
+<li>Considers king activity, pawn promotion, passed pawns</li>
+<li>Implements endgame-specific heuristics (king and pawn endgames, etc.)</li>
+</ul>
+<h4>4. Base Evaluator (<code>traditional_evaluation/Evaluator.cpp</code>)</h4>
+<ul>
+<li>Base class for all evaluators</li>
+<li>Provides common functionality and interface</li>
+<li>Coordinates between different evaluation types</li>
+</ul>
+<hr />
+<h2>Data and Resources</h2>
+<h3>Lichess Database (<code>lichess_db/</code>)</h3>
+<ul>
+<li>Contains 20 chunks of JSONL files (chunk_000.jsonl to chunk_019.jsonl)</li>
+<li>Each file contains chess games in JSON Lines format</li>
+<li>Used for training and evaluating the AI models</li>
+<li>Total dataset: Millions of chess games from Lichess platform</li>
+</ul>
+<h3>Other Data Files</h3>
+<ul>
+<li><strong>data/dataset.csv</strong>: Training dataset (likely for Connect Four or other models)</li>
+<li><strong>data/mnist_loader.py</strong>: Script for loading MNIST dataset (possibly for testing or comparison)</li>
+</ul>
+<hr />
+<h2>Technologies and Dependencies</h2>
+<h3>Programming Languages</h3>
+<ul>
+<li><strong>C++23</strong>: Primary language for chess engine and evaluation components</li>
+<li><strong>Python 3.10+</strong>: For neural network training and Connect Four implementation</li>
+</ul>
+<h3>Libraries and Frameworks</h3>
+<h4>C++ Dependencies</h4>
+<ol>
+<li><strong>Disservin Chess Library</strong> (https://disservin.github.io/chess-library/)</li>
+<li>Provides chess board representation</li>
+<li>Implements chess rules and move generation</li>
+<li>Handles FEN parsing and UCI notation</li>
+<li>
+<p>Used in: <code>implementations/</code>, <code>traditional_evaluation/</code></p>
+</li>
+<li>
+<p><strong>nlohmann/json</strong> (https://github.com/nlohmann/json)</p>
+</li>
+<li>Modern JSON library for C++</li>
+<li>Used for parsing Lichess database JSON files</li>
+<li>
+<p>Header file: <code>neural_network/json.hpp</code></p>
+</li>
+<li>
+<p><strong>Standard Template Library (STL)</strong></p>
+</li>
+<li>Containers, algorithms, and utilities</li>
+</ol>
+<h4>Python Dependencies</h4>
+<ol>
+<li><strong>TensorFlow 2.x</strong></li>
+<li>Neural network training and inference</li>
+<li>
+<p>Used in: <code>connect_four/model.py</code>, <code>connect_four/main.ipynb</code></p>
+</li>
+<li>
+<p><strong>NumPy</strong></p>
+</li>
+<li>Numerical operations and array handling</li>
+<li>
+<p>Used for board representation and data processing</p>
+</li>
+<li>
+<p><strong>scikit-learn</strong></p>
+</li>
+<li>Machine learning utilities</li>
+<li>
+<p>Specifically: <code>train_test_split</code> for data splitting</p>
+</li>
+<li>
+<p><strong>Jupyter Notebook</strong></p>
+</li>
+<li>Interactive development environment</li>
+<li>Used for <code>connect_four/main.ipynb</code></li>
+</ol>
+<hr />
+<h2>Installation and Usage</h2>
+<h3>Prerequisites</h3>
+<h4>For C++ Components</h4>
+<pre><code class="language-bash"># Install g++ with C++23 support
+g++ --version  # Should be version 11 or higher
+
+# Clone Disservin chess library (included as submodule or download separately)
+# Download nlohmann/json header
+</code></pre>
+<h4>For Python Components</h4>
+<pre><code class="language-bash"># Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
+pip install tensorflow numpy scikit-learn jupyter
+</code></pre>
+<h3>Compiling the Chess Engine</h3>
+<pre><code class="language-bash"># Navigate to project directory
+cd ajedrezUPV
+
+# Compile the Alpha-Beta bot
+g++ implementations/alphabetaBot.cpp \
+    implementations/NodeMove.cpp \
+    traditional_evaluation/GeneralEvaluator.cpp \
+    traditional_evaluation/OpeningEvaluator.cpp \
+    traditional_evaluation/EndgameEvaluator.cpp \
+    -I. -o chess_engine
+
+# The -I. flag adds the current directory to include path
+# Make sure Disservin and json headers are available
+</code></pre>
+<h3>Running the Chess Engine</h3>
+<pre><code class="language-bash"># Run the compiled engine
+./chess_engine
+
+# The engine will:
+# 1. Display the starting chess position
+# 2. Wait for your move in UCI notation (e.g., &quot;e2e4&quot;)
+# 3. Calculate and play its move using Alpha-Beta algorithm
+# 4. Continue alternating until game over
+</code></pre>
+<h3>Training Connect Four AI</h3>
+<pre><code class="language-bash"># Navigate to connect_four directory
+cd connect_four
+
+# Run the training script (using Jupyter)
+jupyter notebook main.ipynb
+
+# Or run the standalone model
+python model.py
+
+# The model will:
+# 1. Load training data from test/dataset
+# 2. Create and compile the neural network
+# 3. Train the model
+# 4. Evaluate on test set
+# 5. Save the trained model
+</code></pre>
+<hr />
+<h2>License</h2>
+<p>This project is licensed under the <strong>Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)</strong>.</p>
+<h3>What This Means:</h3>
+<p>✅ <strong>Allowed:</strong>
+- Share: Copy and redistribute the material in any medium or format
+- Adapt: Remix, transform, and build upon the material
+- Use for educational purposes
+- Use for personal projects
+- Use for research</p>
+<p>❌ <strong>Not Allowed:</strong>
+- Use commercially without explicit permission from the author
+- Sell or profit from the project without authorization</p>
+<h3>Attribution Requirement</h3>
+<p>You must give appropriate credit to the original author (Llorenc Perez) and indicate if changes were made.</p>
+<h3>Full License Text</h3>
+<p>Available at: https://creativecommons.org/licenses/by-nc/4.0/</p>
+<hr />
+<h2>Project Status</h2>
+<h3>Completed Features</h3>
+<ul>
+<li>[x] Chess board representation and display</li>
+<li>[x] Legal move generation and validation</li>
+<li>[x] Alpha-Beta pruning algorithm</li>
+<li>[x] UCI notation support</li>
+<li>[x] Human vs. AI gameplay</li>
+<li>[x] Traditional evaluation system (Opening, General, Endgame)</li>
+<li>[x] Connect Four AI with neural networks</li>
+<li>[x] Victory condition checking</li>
+<li>[x] Symmetric board handling</li>
+<li>[x] Data loading and preprocessing</li>
+</ul>
+<h3>In Progress</h3>
+<ul>
+<li>[ ] Advanced neural network integration for chess</li>
+<li>[ ] Move explorer for Connect Four</li>
+<li>[ ] Enhanced evaluation heuristics</li>
+<li>[ ] Multi-threading optimization</li>
+<li>[ ] Opening book implementation</li>
+</ul>
+<hr />
+<h2>Contributing</h2>
+<p>Contributions are welcome! Please contact the project author for collaboration opportunities.</p>
+<p><strong>Author:</strong> Llorenc Perez<br />
+<strong>Email:</strong> perezllorenc@gmail.com<br />
+<strong>GitHub:</strong> https://github.com/LLPB-pixel/ajedrezUPV</p>
+<hr />
+<h2>Acknowledgments</h2>
+<ul>
+<li><strong>Universitat Politècnica de València (UPV)</strong> for academic support</li>
+<li><strong>Disservin</strong> for the excellent chess library</li>
+<li><strong>nlohmann</strong> for the JSON library</li>
+<li><strong>TensorFlow team</strong> for the machine learning framework</li>
+<li><strong>Lichess</strong> for providing the chess game database</li>
+</ul>
+<hr />
+<h2>Version History</h2>
+<ul>
+<li><strong>v1.0</strong> (Current): Initial release with chess engine, evaluation system, and Connect Four AI</li>
+<li><strong>Future versions</strong> will include enhanced neural network integration and additional game AI implementations</li>
+</ul>
+<hr />
+<p><em>Documentation generated on: July 5, 2026</em><br />
+<em>Project repository: https://github.com/LLPB-pixel/ajedrezUPV</em></p></body>
+</html>
