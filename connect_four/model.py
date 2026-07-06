@@ -96,12 +96,21 @@ if __name__=="__main__":
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST, random_state=42)
     
     # Crear modelo
-    model = tf.keras.models.Sequential()
-    model.add(tf.keras.Input(shape=(WIDTH*HEIGHT,)))
-    for l in LAYERS:
-        model.add(tf.keras.layers.Dense(l, activation="tanh"))
-    model.add(tf.keras.layers.Dense(1, activation="linear"))
+    model = tf.keras.models.Sequential([
+        tf.keras.Input(shape=(HEIGHT, WIDTH, 1)),
+        tf.keras.layers.Conv2D(32, (4,4), activation="relu", padding="same"),
+        tf.keras.layers.Conv2D(64, (3,3), activation="relu", padding="same"),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(64, activation="relu"),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(1, activation="linear"),
+    ])
 
+    x_train_cnn = x_train.reshape(-1, HEIGHT, WIDTH, 1)
+    x_test_cnn = x_test.reshape(-1, HEIGHT, WIDTH, 1)
+    
     callback = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss",
         patience=5,
@@ -113,16 +122,16 @@ if __name__=="__main__":
 
     ## Entrenar modelo 
     print("\n--- Training Model ---")
-    history = model.fit(x_train, y_train, batch_size=BATCH, epochs=EPOCHS, validation_split=VALIDATION, callbacks=[callback])
+    history = model.fit(x_train_cnn, y_train, batch_size=BATCH, epochs=EPOCHS, validation_split=VALIDATION, callbacks=[callback])
 
     ## Evaluar modelo
     print("\n--- Evaluating Model ---")
-    eval_results = model.evaluate(x_test, y_test, verbose=0)
+    eval_results = model.evaluate(x_test_cnn, y_test, verbose=0)
     print(f"Test Loss (MSE): {eval_results[0]:.4f}")
     print(f"Test MAE: {eval_results[1]:.4f}")
     
     # 1. Predicciones y correlación
-    preds_test = model.predict(x_test).flatten()
+    preds_test = model.predict(x_test_cnn).flatten()
     std_preds = preds_test.std()
     std_real = y_test.std()
     corr = np.corrcoef(preds_test, y_test)[0,1]
@@ -150,7 +159,7 @@ if __name__=="__main__":
         row_str = " ".join(["X" if cell == 1 else "O" if cell == -1 else "." for cell in row])
         print(f"  {row_str}")
         
-    dato2 = tablero_test.flatten().reshape((1, WIDTH*HEIGHT))
+    dato2 = tablero_test.reshape((1, HEIGHT, WIDTH, 1))
     pred_custom = model.predict(dato2)[0][0]
     print(f"Model prediction for custom position: {pred_custom:.4f} (real result should favor X/Player 1)")
 
