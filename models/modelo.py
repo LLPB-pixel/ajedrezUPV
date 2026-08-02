@@ -5,7 +5,7 @@ import chess
 
 
 print("Loading data...")
-df = pd.read_csv("dataset.csv")
+df = pd.read_csv("data/dataset.csv")
 print("Data loaded successfully.")
 
 df_numeric = df[~df["score"].astype(str).str.contains("mate")].copy()

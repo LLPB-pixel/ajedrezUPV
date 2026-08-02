@@ -29,23 +29,24 @@ cd ajedrezUPV
 Or manually download the files from the `implementations` directory.
 
 In any case, you need to compile with:
+
 ```bash
-g++ [bot_version] NodeMove.cpp GeneralEvaluator.cpp OpeningEvaluator.cpp EndgameEvaluator.cpp
+g++ -std=c++23 -I. implementations/alphabetaBot.cpp implementations/NodeMove.cpp \
+    traditional_evaluation/GeneralEvaluator.cpp traditional_evaluation/OpeningEvaluator.cpp \
+    traditional_evaluation/EndgameEvaluator.cpp -o chess_engine
 ```
 
 This will create a console application. It only accepts moves in UCI notation. (https://en.wikipedia.org/wiki/Universal_Chess_Interface)
-
-When the AI is developed, it will need to be compiled differently, of course.
 
 ## Repository Structure
 
 ```
 ajedrezUPV/
 ├── README.md                    # Project documentation
-├── LICENSE                     # Project license (CC BY-NC 4.0)
+├── LICENSE                      # Project license (CC BY-NC 4.0)
 ├── docs/
-│   ├── FEN.pdf                 # FEN notation documentation
-│   └── PROJECT_DOCUMENTATION.* # Complete project documentation
+│   ├── FEN.pdf                  # FEN notation documentation
+│   └── PROJECT_DOCUMENTATION.*  # Complete project documentation
 ├── data/
 │   ├── dataset.csv              # Training datasets
 │   └── mnist_loader.py          # Data loading utilities
@@ -71,29 +72,12 @@ ajedrezUPV/
 ├── neural_network_jr/
 │   ├── jsonExtractorJR.cpp      # Junior JSON extractor
 │   └── redNeuronalJR.cpp         # Junior neural network
-├── connect_four/
-│   ├── main.ipynb               # Connect Four Jupyter notebook
-│   ├── model.py                 # Connect Four AI model
-│   ├── test-case-parser.py      # Test case parser
-│   └── test/                    # Test datasets
-├── connect_three/
-│   ├── comentaris_tres_en_ratlla.docx
-│   ├── tres_en_ratlla1.py
-│   └── quatre_en_ratlla.py
 └── lichess_db/
     └── chunk_*.jsonl             # Lichess game database chunks
 ```
 
 For any questions or bug reports, please send an email to perezllorenc@gmail.com
 
-
 ## Licencia
 Este proyecto está licenciado bajo la [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 ![Licencia](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)
-
-
-
-
-
-
-

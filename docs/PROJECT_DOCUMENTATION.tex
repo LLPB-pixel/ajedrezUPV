@@ -78,16 +78,6 @@ neural\_network\_jr/ & NN Junior \\
 & jsonExtractorJR.cpp \\
 & redNeuronalJR.cpp \\
 \hline
-connect\_four/ & Connect Four AI \\
-& main.ipynb \\
-& model.py \\
-& test-case-parser.py \\
-& test/ \\
-\hline
-connect\_three/ & Connect Three \\
-& tres\_en\_ratlla1.py \\
-& quatre\_en\_ratlla.py \\
-\hline
 lichess\_db/ & Lichess DB \\
 & chunk\_000 to chunk\_019.jsonl \\
 \hline
@@ -107,20 +97,7 @@ C++ implementation with Alpha-Beta algorithm using Disservin library.
 \end{itemize}
 
 \section{Connect Four AI}
-Neural network AI for Connect Four (7x6 board).
-
-\subsection*{Model}
-Input: 42 neurons, Hidden: 64+64+32 (tanh), Output: 1 (linear).
-
-Training: Adam optimizer, MSE loss, Batch=10, Epochs=30, Val=20\%, Test=10\%, Early Stop=5.
-
-\subsection*{Files}
-\begin{itemize}
-    \item {\tt model.py} - NN model with victory check
-    \item {\tt main.ipynb} - Jupyter notebook
-    \item {\tt test-case-parser.py} - Test parser
-    \item {\tt test/} - Datasets
-\end{itemize}
+Neural network AI for Connect Four. Moved to its own repository: \textbf{connectUPV} (\url{https://github.com/LLPB-pixel/connectUPV}).
 
 \section{Neural Networks}
 \begin{itemize}
@@ -136,7 +113,7 @@ Compile: g++ implementations/*.cpp traditional\_evaluation/*.cpp -I. -o chess\_e
 
 Run: ./chess\_engine (UCI notation: e2e4, etc.)
 
-Train Connect Four: cd connect\_four \textbackslash\ and run jupyter notebook main.ipynb or python model.py
+Connect Four is no longer part of this repository (see \textbf{connectUPV}).
 
 \section{License}
 CC BY-NC 4.0 - \url{https://creativecommons.org/licenses/by-nc/4.0/}
@@ -146,7 +123,7 @@ Allowed: Share, Adapt, Educational/Personal/Research use.
 Not Allowed: Commercial use without permission.
 
 \section{Status}
-Completed: Chess engine, Alpha-Beta, evaluation system, Connect Four AI, victory check.
+Completed: Chess engine, Alpha-Beta, evaluation system, victory check.
 
 In Progress: Advanced NN for chess, move explorer, multi-threading, opening book.
 
