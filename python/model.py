@@ -2,10 +2,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import chess
+from pathlib import Path
+
+DATASET_PATH = Path(__file__).resolve().parent.parent / "data" / "dataset.csv"
 
 
 print("Loading data...")
-df = pd.read_csv("data/dataset.csv")
+df = pd.read_csv(DATASET_PATH)
 print("Data loaded successfully.")
 
 df_numeric = df[~df["score"].astype(str).str.contains("mate")].copy()

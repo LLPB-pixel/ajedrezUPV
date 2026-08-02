@@ -1,4 +1,4 @@
-#include "EndgameEvaluator.h"
+#include "chess/endgame_evaluator.h"
 #include <future>
 EndgameEvaluator::EndgameEvaluator() {}
 

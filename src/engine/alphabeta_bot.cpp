@@ -1,5 +1,5 @@
-#include "NodeMove.h"
-#include "GeneralEvaluator.h"
+#include "chess/node_move.h"
+#include "chess/general_evaluator.h"
 #include "chess.hpp"
 #include <iostream>
 #include <string>
@@ -86,7 +86,7 @@ int main() {
                 currentNode->rebuildUntilDepth(&board);
             }
 
-            std::cout << "El motor juega: " << bestMove << "\n";
+            std::cout << "El motor juega: " << chess::uci::moveToUci(bestMove) << "\n";
             board.makeMove(bestMove);
             printBoard(board);
         }

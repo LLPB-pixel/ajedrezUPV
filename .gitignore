@@ -1,0 +1,27 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.obj
+
+# Third-party headers fetched at build time
+third_party/chess.hpp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# LaTeX build artifacts
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

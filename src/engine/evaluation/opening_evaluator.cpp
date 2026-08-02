@@ -1,4 +1,4 @@
-#include "OpeningEvaluator.h"
+#include "chess/opening_evaluator.h"
 #include <iostream>
 #include <future>
 

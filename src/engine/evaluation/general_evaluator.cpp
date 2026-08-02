@@ -1,6 +1,6 @@
-#include "GeneralEvaluator.h"
-#include "OpeningEvaluator.h"
-#include "EndgameEvaluator.h"
+#include "chess/general_evaluator.h"
+#include "chess/opening_evaluator.h"
+#include "chess/endgame_evaluator.h"
 #include <iostream> 
 #include <future>
 

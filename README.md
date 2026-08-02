@@ -1,82 +1,100 @@
 # ajedrezUPV
 
-**ajedrezUPV** is an artificial intelligence project focused on chess, developed within the framework of the Universitat Politècnica de València (UPV). This chess engine aims to promote the study of decision algorithms, heuristic evaluation, and game engine programming techniques.
+**ajedrezUPV** es un proyecto de inteligencia artificial centrado en el ajedrez, desarrollado en el marco de la Universitat Politècnica de València (UPV). Este motor de ajedrez estudia algoritmos de decisión, evaluación heurística y técnicas de programación de motores de juego.
 
-## Features
+## Características
 
-- Custom chess engine implementation
-- Search algorithms and heuristic evaluation
-- Modular and extensible code
-- Focus on educational research and university practice
-- Neural network integration for AI decision making
-- UCI (Universal Chess Interface) notation support
+- Motor de ajedrez en C++ (con la librería [Disservin chess-library](https://disservin.github.io/chess-library/))
+- Algoritmos de búsqueda: Minimax y poda Alpha-Beta (paralelizado)
+- Evaluación heurística: material, estructura de peones, seguridad de rey y control
+- Redes neuronales (C++) para la toma de decisiones
+- Soporte de notación UCI ([Universal Chess Interface](https://en.wikipedia.org/wiki/Universal_Chess_Interface))
+- Herramientas Python para análisis de datasets de Lichess
 
-## Requirements
-
-- Language: C++23
-- Disservin Chess Library (https://disservin.github.io/chess-library/) - provides chess rules and board representation
-- nlohmann/json (https://github.com/nlohmann/json) - for parsing JSON files from Lichess database
-
-## Installation
-
-You can install it using git:
-
-```bash
-git clone https://github.com/LLPB-pixel/ajedrezUPV.git
-cd ajedrezUPV
-```
-
-Or manually download the files from the `implementations` directory.
-
-In any case, you need to compile with:
-
-```bash
-g++ -std=c++23 -I. implementations/alphabetaBot.cpp implementations/NodeMove.cpp \
-    traditional_evaluation/GeneralEvaluator.cpp traditional_evaluation/OpeningEvaluator.cpp \
-    traditional_evaluation/EndgameEvaluator.cpp -o chess_engine
-```
-
-This will create a console application. It only accepts moves in UCI notation. (https://en.wikipedia.org/wiki/Universal_Chess_Interface)
-
-## Repository Structure
+## Estructura del repositorio
 
 ```
 ajedrezUPV/
-├── README.md                    # Project documentation
-├── LICENSE                      # Project license (CC BY-NC 4.0)
-├── docs/
-│   ├── FEN.pdf                  # FEN notation documentation
-│   └── PROJECT_DOCUMENTATION.*  # Complete project documentation
-├── data/
-│   ├── dataset.csv              # Training datasets
-│   └── mnist_loader.py          # Data loading utilities
-├── models/
-│   └── modelo.py                # Model implementations
-├── tests/
-│   └── prova1.py                # Test scripts
-├── implementations/
-│   ├── alphabetaBot.cpp         # Alpha-Beta pruning bot
-│   ├── botConMinimaxOptimizado.cpp # Optimized Minimax bot
-│   ├── NodeMove.cpp             # Move node implementation
-│   ├── NodeMove.h               # Move node header
-│   └── redNeuronalSquareRook.cpp # Neural network for rook movement
-├── traditional_evaluation/
-│   ├── EndgameEvaluator.*       # Endgame position evaluator
-│   ├── Evaluator.*              # Base evaluator
-│   ├── GeneralEvaluator.*       # General position evaluator
-│   └── OpeningEvaluator.*       # Opening position evaluator
-├── neural_network/
-│   ├── jsonExtractor.cpp         # JSON data extractor
-│   ├── json.hpp                 # JSON library header
-│   └── modificacionesRedNeuronal.cpp # Neural network modifications
-├── neural_network_jr/
-│   ├── jsonExtractorJR.cpp      # Junior JSON extractor
-│   └── redNeuronalJR.cpp         # Junior neural network
-└── lichess_db/
-    └── chunk_*.jsonl             # Lichess game database chunks
+├── CMakeLists.txt            # Build con CMake (descarga chess-library automáticamente)
+├── Makefile                  # Build alternativo con g++ (make setup descarga la librería)
+├── include/chess/            # Cabeceras públicas del motor
+│   ├── node_move.h           #   Nodo del árbol de juego (minimax/alpha-beta)
+│   ├── evaluator.h           #   Interfaz base de evaluación
+│   ├── general_evaluator.h   #   Evaluador general
+│   ├── opening_evaluator.h   #   Evaluador de apertura
+│   └── endgame_evaluator.h   #   Evaluador de finales
+├── src/
+│   ├── engine/               # Motor de juego
+│   │   ├── alphabeta_bot.cpp #   Bot principal (poda Alpha-Beta)
+│   │   ├── minimax_bot.cpp   #   Bot con Minimax
+│   │   ├── node_move.cpp     #   Implementación del árbol de juego
+│   │   └── evaluation/       #   Evaluadores (implementación)
+│   ├── neural/               # Redes neuronales en C++
+│   │   ├── square_rook_network.cpp  #   Red grande (input 2565)
+│   │   ├── network_junior.hpp       #   Red junior (entrenamiento con datos Lichess)
+│   │   └── simd_network_wip.cpp     #   Prototipo SIMD (experimental, no compila aún)
+│   └── tools/                # Herramientas de datos
+│       ├── json_extractor.cpp        #   Extrae FEN/evaluaciones de chunks JSONL
+│       └── json_extractor_junior.cpp #   Entrenador online sobre datos JSONL
+├── python/                   # Herramientas Python
+│   ├── model.py              #   Análisis del dataset y planos FEN
+│   ├── mnist_loader.py       #   Utilidades de carga de datos
+│   └── network_reference.py  #   Implementación de referencia (SGD/backprop)
+├── data/                     # Datasets de entrenamiento
+│   └── dataset.csv
+├── lichess_db/               # Base de datos de partidas de Lichess (chunks JSONL)
+├── third_party/              # Librerías de terceros
+│   └── json.hpp              #   nlohmann/json (header-only, vendored)
+├── docs/                     # Documentación (FEN.pdf, PROJECT_DOCUMENTATION)
+├── requirements.txt          # Dependencias Python
+└── LICENSE                   # CC BY-NC 4.0
 ```
 
-For any questions or bug reports, please send an email to perezllorenc@gmail.com
+## Requisitos
+
+- Compilador C++17 (g++ o clang++)
+- [OpenMP](https://www.openmp.org/) (paralelización)
+- **Alternativa A (CMake):** CMake ≥ 3.16. Descarga automáticamente la librería chess-library en la primera configuración.
+- **Alternativa B (Makefile):** `make setup` descarga `chess.hpp` a `third_party/`.
+- Python 3 con `pip install -r requirements.txt` (herramientas Python).
+
+## Compilación
+
+### Con CMake (recomendado)
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+Los ejecutables quedan en `build/` (`alphabeta_bot`, `minimax_bot`, `square_rook_network`, `json_extractor`, `json_extractor_junior`).
+
+### Con Makefile
+
+```bash
+make all        # o: make engine / make neural
+```
+
+Los binarios quedan en `bin/`.
+
+## Uso
+
+```bash
+./bin/alphabeta_bot        # Jugar contra el motor (notación UCI, ej: e2e4)
+./bin/minimax_bot
+```
+
+## Estado
+
+- [x] Motor de ajedrez, Minimax y Alpha-Beta
+- [x] Sistema de evaluación (apertura/final)
+- [x] Comprobación de victoria
+- [ ] Red neuronal avanzada para ajedrez
+- [ ] Explorador de movimientos
+- [ ] Multi-hilo avanzado
+- [ ] Libro de aperturas
+
+Para cualquier duda o sugerencia: perezllorenc@gmail.com
 
 ## Licencia
 Este proyecto está licenciado bajo la [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).

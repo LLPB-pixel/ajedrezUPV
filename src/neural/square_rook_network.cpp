@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <omp.h>
 #include <fstream>
+#include <iomanip>
 #include "json.hpp"
 #include <future>
 #include <string>

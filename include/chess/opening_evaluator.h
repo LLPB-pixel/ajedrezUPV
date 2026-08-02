@@ -1,7 +1,7 @@
 #ifndef OPENINGEVALUATOR_H
 #define OPENINGEVALUATOR_H
 
-#include "GeneralEvaluator.h"
+#include "chess/general_evaluator.h"
 
 class OpeningEvaluator : public GeneralEvaluator {
 public:

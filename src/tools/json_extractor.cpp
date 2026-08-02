@@ -5,6 +5,7 @@
 #include <thread>
 #include <ctime>
 #include <iomanip> // Para formatear números con ceros a la izquierda
+#include <sstream>
 #include "json.hpp"
 
 using json = nlohmann::json;

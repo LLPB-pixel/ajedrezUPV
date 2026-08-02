@@ -1,8 +1,8 @@
 #ifndef GENERALEVALUATOR_H
 #define GENERALEVALUATOR_H
 
-#include "../include/chess.hpp"
-#include "Evaluator.h"
+#include "chess.hpp"
+#include "chess/evaluator.h"
 using namespace chess;
 
 class GeneralEvaluator : public Evaluator {

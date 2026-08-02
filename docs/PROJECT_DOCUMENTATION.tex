@@ -32,7 +32,6 @@
 \end{itemize}
 
 \section{Repository Structure}
-Reorganized with English names:
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
@@ -41,42 +40,45 @@ Reorganized with English names:
 . & Root \\
 README.md & Main documentation \\
 LICENSE & CC BY-NC 4.0 \\
+CMakeLists.txt & CMake build \\
+Makefile & Make build \\
 \hline
-docs/ & Documentation \\
-& FEN.pdf \\
-& PROJECT\_DOCUMENTATION.tex \\
-& PROJECT\_DOCUMENTATION.pdf \\
+include/chess/ & Public headers \\
+& node\_move.h \\
+& evaluator.h \\
+& general\_evaluator.h \\
+& opening\_evaluator.h \\
+& endgame\_evaluator.h \\
+\hline
+src/engine/ & Chess engine \\
+& alphabeta\_bot.cpp \\
+& minimax\_bot.cpp \\
+& node\_move.cpp/h \\
+& evaluation/ \\
+\hline
+src/neural/ & Neural networks (C++) \\
+& square\_rook\_network.cpp \\
+& network\_junior.hpp \\
+& simd\_network\_wip.cpp \\
+\hline
+src/tools/ & Data tools \\
+& json\_extractor.cpp \\
+& json\_extractor\_junior.cpp \\
+\hline
+python/ & Python tools \\
+& model.py \\
+& mnist\_loader.py \\
+& network\_reference.py \\
 \hline
 data/ & Data files \\
 & dataset.csv \\
-& mnist\_loader.py \\
 \hline
-models/ & Models \\
-& modelo.py \\
-\hline
-tests/ & Tests \\
-& prova1.py \\
-\hline
-implementations/ & C++ engine \\
-& alphabetaBot.cpp \\
-& botConMinimaxOptimizado.cpp \\
-& NodeMove.cpp/h \\
-& redNeuronalSquareRook.cpp \\
-\hline
-traditional\_evaluation/ & Evaluators \\
-& EndgameEvaluator.cpp/h \\
-& Evaluator.cpp/h \\
-& GeneralEvaluator.cpp/h \\
-& OpeningEvaluator.cpp/h \\
-\hline
-neural\_network/ & Neural Network \\
-& jsonExtractor.cpp \\
+third\_party/ & Third-party headers \\
 & json.hpp \\
-& modificacionesRedNeuronal.cpp \\
 \hline
-neural\_network\_jr/ & NN Junior \\
-& jsonExtractorJR.cpp \\
-& redNeuronalJR.cpp \\
+docs/ & Documentation \\
+& FEN.pdf \\
+& PROJECT\_DOCUMENTATION.tex/.pdf \\
 \hline
 lichess\_db/ & Lichess DB \\
 & chunk\_000 to chunk\_019.jsonl \\
@@ -89,11 +91,11 @@ C++ implementation with Alpha-Beta algorithm using Disservin library.
 
 \subsection*{Key Components}
 \begin{itemize}
-    \item {\tt alphabetaBot.cpp} - Main game loop, UCI input, console display
-    \item {\tt NodeMove.cpp/h} - Game tree node with alphaBeta() method
-    \item {\tt GeneralEvaluator.cpp} - Position evaluation
-    \item {\tt OpeningEvaluator.cpp} - Opening heuristics
-    \item {\tt EndgameEvaluator.cpp} - Endgame heuristics
+    \item {\tt src/engine/alphabeta\_bot.cpp} - Main game loop, UCI input, console display
+    \item {\tt node\_move.cpp/h} - Game tree node with alphaBeta() method
+    \item {\tt general\_evaluator.cpp} - Position evaluation
+    \item {\tt opening\_evaluator.cpp} - Opening heuristics
+    \item {\tt endgame\_evaluator.cpp} - Endgame heuristics
 \end{itemize}
 
 \section{Connect Four AI}
@@ -109,9 +111,11 @@ Neural network AI for Connect Four. Moved to its own repository: \textbf{connect
 C++: Disservin, nlohmann/json, STL. Python: TensorFlow, NumPy, scikit-learn, Jupyter.
 
 \section{Installation}
-Compile: g++ implementations/*.cpp traditional\_evaluation/*.cpp -I. -o chess\_engine
+CMake: cmake -S . -B build \&\& cmake --build build
 
-Run: ./chess\_engine (UCI notation: e2e4, etc.)
+Make: make setup \&\& make all
+
+Run: ./bin/alphabeta\_bot (UCI notation: e2e4, etc.)
 
 Connect Four is no longer part of this repository (see \textbf{connectUPV}).
 

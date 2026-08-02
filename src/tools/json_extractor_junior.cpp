@@ -5,10 +5,12 @@
 #include <thread>
 #include <ctime>
 #include <iomanip> 
+#include <sstream>
+#include <cstring>
 #include <cassert>
 #include "json.hpp"
 #include "chess.hpp" 
-#include "redNeuronalJR.cpp"
+#include "neural/network_junior.hpp"
 #include <csignal>
 
 using json = nlohmann::json;

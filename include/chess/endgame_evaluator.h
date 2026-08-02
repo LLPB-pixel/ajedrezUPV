@@ -1,7 +1,7 @@
 #ifndef ENDGAMEEVALUATOR_H
 #define ENDGAMEEVALUATOR_H
 
-#include "GeneralEvaluator.h"
+#include "chess/general_evaluator.h"
 
 class EndgameEvaluator : public GeneralEvaluator {
 public:

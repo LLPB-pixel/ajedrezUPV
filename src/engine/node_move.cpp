@@ -1,4 +1,4 @@
-#include "NodeMove.h"
+#include "chess/node_move.h"
 #include <omp.h>
 #include <iostream>
 #include <algorithm>
@@ -45,7 +45,7 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
                 {
                     std::lock_guard<std::mutex> lock(cout_mutex);
                     std::cout << "Hilo " << std::this_thread::get_id() 
-                              << " procesando movimiento: " << move 
+                              << " procesando movimiento: " << uci::moveToUci(move) 
                               << " en profundidad 1\n";
                 }
 
@@ -63,7 +63,7 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
                 } else {
                     std::lock_guard<std::mutex> cout_lock(cout_mutex);
                     std::cout << "MAX_BRANCH alcanzado en profundidad 1. Movimiento omitido: " 
-                              << move << "\n";
+                              << uci::moveToUci(move) << "\n";
                 }
             }
         };
@@ -108,7 +108,7 @@ NodeMove::NodeMove(Board *board, NodeMove* parent) :
             {
                 std::lock_guard<std::mutex> lock(cout_mutex);
                 std::cout << "Añadiendo hijo en profundidad " << current_depth_
-                          << " - Movimiento: " << move 
+                          << " - Movimiento: " << uci::moveToUci(move) 
                           << " - Hijos actuales: " << child_count_ + 1 << "\n";
             }
 
@@ -123,7 +123,7 @@ void NodeMove::printTree(int indent) const {
     
     std::lock_guard<std::mutex> lock(cout_mutex);
     std::cout << spacing << "Nodo profundidad " << current_depth_ 
-              << " - Movimiento: " << last_move_ 
+              << " - Movimiento: " << uci::moveToUci(last_move_) 
               << " - Hijos: " << child_count_ 
               << " - Eval: " << eval_ << "\n";
     
@@ -386,7 +386,7 @@ chess::Move NodeMove::getBestMove(float best_score) const {
 void NodeMove::printEvaluationsOfChildren() const {
     std::cout << "Child move evaluations:\n";
     for (size_t i = 0; i < child_count_; ++i) {
-        std::cout << "Move: " << children_[i]->last_move_
+        std::cout << "Move: " << uci::moveToUci(children_[i]->last_move_)
                   << " | Eval: " << children_[i]->eval_ << "\n";
     }
 }

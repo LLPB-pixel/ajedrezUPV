@@ -1,8 +1,8 @@
-#ifndef NODEMOVE_H
-#define NODEMOVE_H
+#ifndef NODE_MOVE_H
+#define NODE_MOVE_H
 
 #include "chess.hpp"
-#include "GeneralEvaluator.h"
+#include "chess/general_evaluator.h"
 #include <array>
 #include <memory>
 #include <thread>
@@ -73,4 +73,4 @@ public:
 };
 
 } // namespace chess
-#endif // NODEMOVE_H
+#endif // NODE_MOVE_H
