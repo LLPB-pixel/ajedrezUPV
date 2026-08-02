@@ -46,6 +46,7 @@ ajedrezUPV/
 ├── third_party/              # Librerías de terceros
 │   └── json.hpp              #   nlohmann/json (header-only, vendored)
 ├── docs/                     # Documentación (FEN.pdf, PROJECT_DOCUMENTATION)
+├── .gitignore                # Archivos ignorados (bin/, build/, third_party/chess.hpp)
 ├── requirements.txt          # Dependencias Python
 └── LICENSE                   # CC BY-NC 4.0
 ```
