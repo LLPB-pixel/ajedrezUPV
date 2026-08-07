@@ -46,8 +46,20 @@ add_library(ajedrez_engine STATIC
 target_include_directories(ajedrez_engine PUBLIC include third_party src)
 target_link_libraries(ajedrez_engine PUBLIC chess_lib OpenMP::OpenMP_CXX)
 
+# Optimized copy. It reuses the evaluator implementation from the regular
+# engine, while keeping the original NodeMove implementation available for
+# side-by-side benchmarks and regression tests.
+add_library(ajedrez_engine_optimized STATIC
+  src/engine/node_move_optimized.cpp
+)
+target_include_directories(ajedrez_engine_optimized PUBLIC include third_party src)
+target_link_libraries(ajedrez_engine_optimized PUBLIC ajedrez_engine)
+
 add_executable(alphabeta_bot src/engine/alphabeta_bot.cpp)
 target_link_libraries(alphabeta_bot PRIVATE ajedrez_engine)
+
+add_executable(alphabeta_optimized src/engine/alphabeta_optimized.cpp)
+target_link_libraries(alphabeta_optimized PRIVATE ajedrez_engine_optimized)
 
 add_executable(minimax_bot src/engine/minimax_bot.cpp)
 target_link_libraries(minimax_bot PRIVATE ajedrez_engine)
@@ -74,12 +86,12 @@ endforeach()
 if(BUILD_TESTING)
   add_executable(test_node_move test/test_node_move.cpp)
   target_include_directories(test_node_move PRIVATE include third_party src)
-  target_link_libraries(test_node_move PRIVATE ajedrez_engine)
+  target_link_libraries(test_node_move PRIVATE ajedrez_engine_optimized)
   add_test(NAME node_move_tests COMMAND test_node_move)
 
   add_executable(test_search_benchmark test/test_search_benchmark.cpp)
   target_include_directories(test_search_benchmark PRIVATE include third_party src)
-  target_link_libraries(test_search_benchmark PRIVATE ajedrez_engine)
+  target_link_libraries(test_search_benchmark PRIVATE ajedrez_engine_optimized)
   add_test(NAME search_benchmark_tests COMMAND test_search_benchmark)
 
   add_executable(test_json_extractor test/test_json_extractor.cpp)

@@ -1,4 +1,5 @@
 #include "chess/node_move.h"
+#include "chess/node_move_optimized.h"
 
 #include <chrono>
 #include <cmath>
@@ -50,7 +51,8 @@ public:
 struct SearchResult {
     float score;
     std::string move;
-    double milliseconds;
+    double build_milliseconds;
+    double search_milliseconds;
 };
 
 SearchResult measureMinimax(const chess::Board& position, int depth,
@@ -58,7 +60,10 @@ SearchResult measureMinimax(const chess::Board& position, int depth,
     chess::Board board = position;
     BenchmarkEvaluator evaluator;
     CoutSilencer silence_output;
+
+    const auto build_start = std::chrono::steady_clock::now();
     chess::NodeMove root(&board);
+    const auto build_end = std::chrono::steady_clock::now();
 
     // Warm up the code path before measuring it.
     root.minimax(&evaluator, &board, chess::Color::WHITE, depth);
@@ -72,9 +77,14 @@ SearchResult measureMinimax(const chess::Board& position, int depth,
     }
     const auto end = std::chrono::steady_clock::now();
 
+    require(board.getFen() == position.getFen(),
+            "minimax did not restore the benchmark board");
+
     return {
         score,
         chess::uci::moveToUci(best_move),
+        std::chrono::duration<double, std::milli>(build_end - build_start)
+            .count(),
         std::chrono::duration<double, std::milli>(end - start).count()
     };
 }
@@ -84,7 +94,10 @@ SearchResult measureAlphaBeta(const chess::Board& position, int depth,
     chess::Board board = position;
     BenchmarkEvaluator evaluator;
     CoutSilencer silence_output;
+
+    const auto build_start = std::chrono::steady_clock::now();
     chess::NodeMove root(&board);
+    const auto build_end = std::chrono::steady_clock::now();
 
     float warmup_alpha = -99999.0f;
     float warmup_beta = 99999.0f;
@@ -106,9 +119,48 @@ SearchResult measureAlphaBeta(const chess::Board& position, int depth,
     }
     const auto end = std::chrono::steady_clock::now();
 
+    require(board.getFen() == position.getFen(),
+            "alpha-beta did not restore the benchmark board");
+
     return {
         score,
         chess::uci::moveToUci(best_move),
+        std::chrono::duration<double, std::milli>(build_end - build_start)
+            .count(),
+        std::chrono::duration<double, std::milli>(end - start).count()
+    };
+}
+
+SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
+                                       int iterations) {
+    chess::Board board = position;
+    BenchmarkEvaluator evaluator;
+    CoutSilencer silence_output;
+
+    const auto build_start = std::chrono::steady_clock::now();
+    chess::NodeMoveOptimized root(&board);
+    const auto build_end = std::chrono::steady_clock::now();
+
+    // Warm up allocation and instruction-cache paths before timing searches.
+    root.alphaBeta(&evaluator, chess::Color::WHITE, &board, depth);
+
+    const auto start = std::chrono::steady_clock::now();
+    float score = 0.0f;
+    chess::Move best_move;
+    for (int iteration = 0; iteration < iterations; ++iteration) {
+        score = root.alphaBeta(&evaluator, chess::Color::WHITE, &board, depth);
+        best_move = root.getBestMove(score);
+    }
+    const auto end = std::chrono::steady_clock::now();
+
+    require(board.getFen() == position.getFen(),
+            "optimized alpha-beta did not restore the benchmark board");
+
+    return {
+        score,
+        chess::uci::moveToUci(best_move),
+        std::chrono::duration<double, std::milli>(build_end - build_start)
+            .count(),
         std::chrono::duration<double, std::milli>(end - start).count()
     };
 }
@@ -121,24 +173,46 @@ void compareSearchesAtSeveralDepths() {
     for (const int depth : {1, 2, 3}) {
         SearchResult minimax = measureMinimax(position, depth, iterations);
         SearchResult alpha_beta = measureAlphaBeta(position, depth, iterations);
+        SearchResult optimized =
+            measureOptimizedAlphaBeta(position, depth, iterations);
 
         require(std::fabs(minimax.score - alpha_beta.score) < 0.00001f,
                 "minimax and alpha-beta disagree on the search score");
+        require(std::fabs(alpha_beta.score - optimized.score) < 0.00001f,
+                "optimized alpha-beta changed the search score");
         require(minimax.move == alpha_beta.move,
                 "minimax and alpha-beta return different best moves");
+        require(alpha_beta.move == optimized.move,
+                "optimized alpha-beta returned a different best move");
         require(!minimax.move.empty() && minimax.move != "0000",
                 "minimax did not return a best move");
         require(!alpha_beta.move.empty() && alpha_beta.move != "0000",
                 "alpha-beta did not return a best move");
-        require(minimax.milliseconds > 0.0 && alpha_beta.milliseconds > 0.0,
+        require(!optimized.move.empty() && optimized.move != "0000",
+                "optimized alpha-beta did not return a best move");
+        require(minimax.search_milliseconds > 0.0 &&
+                    alpha_beta.search_milliseconds > 0.0 &&
+                    optimized.search_milliseconds > 0.0,
                 "search timing did not produce a positive duration");
+        require(minimax.build_milliseconds > 0.0 &&
+                    alpha_beta.build_milliseconds > 0.0 &&
+                    optimized.build_milliseconds > 0.0,
+                "tree construction timing did not produce a positive duration");
 
-        const double speedup = minimax.milliseconds / alpha_beta.milliseconds;
+        const double alpha_beta_speedup =
+            alpha_beta.search_milliseconds / optimized.search_milliseconds;
+        const double build_speedup =
+            alpha_beta.build_milliseconds / optimized.build_milliseconds;
         std::cout << "depth=" << depth
                   << " move=" << minimax.move
-                  << " minimax_ms=" << minimax.milliseconds
-                  << " alpha_beta_ms=" << alpha_beta.milliseconds
-                  << " speedup=" << speedup << "x\n";
+                  << " baseline_build_ms=" << alpha_beta.build_milliseconds
+                  << " optimized_build_ms=" << optimized.build_milliseconds
+                  << " baseline_alpha_beta_ms="
+                  << alpha_beta.search_milliseconds
+                  << " optimized_alpha_beta_ms="
+                  << optimized.search_milliseconds
+                  << " build_speedup=" << build_speedup << "x"
+                  << " search_speedup=" << alpha_beta_speedup << "x\n";
     }
 }
 

@@ -1,4 +1,5 @@
 #include "chess/node_move.h"
+#include "chess/node_move_optimized.h"
 
 #include <cmath>
 #include <fstream>
@@ -75,6 +76,50 @@ void rebuildPreservesDepthInvariants() {
 
     next->rebuildUntilDepth(&board);
     checkDepths(*next, 1);
+}
+
+void checkOptimizedDepths(const chess::NodeMoveOptimized& node,
+                          int expected_depth) {
+    require(node.getCurrentDepth() == expected_depth,
+            "optimized node depth does not match its position in the tree");
+    require(node.getChildCount() <= chess::MAX_BRANCH,
+            "optimized node contains too many children");
+
+    if (expected_depth == chess::MAX_DEPTH) {
+        require(node.getChildCount() == 0,
+                "optimized node at MAX_DEPTH must not have children");
+        return;
+    }
+
+    for (size_t index = 0; index < node.getChildCount(); ++index) {
+        const chess::NodeMoveOptimized* child = node.getChild(index);
+        require(child != nullptr,
+                "optimized child slot is null inside child_count");
+        checkOptimizedDepths(*child, expected_depth + 1);
+    }
+}
+
+void optimizedTreeHasConsistentDepths() {
+    chess::Board board(chess::constants::STARTPOS);
+    chess::NodeMoveOptimized root(&board);
+
+    require(root.getCurrentDepth() == 0,
+            "optimized root must start at depth zero");
+    require(root.getChildCount() > 0,
+            "optimized root tree was not generated");
+    checkOptimizedDepths(root, 0);
+}
+
+void optimizedRebuildPreservesDepthInvariants() {
+    chess::Board board(chess::constants::STARTPOS);
+    chess::NodeMoveOptimized root(&board);
+
+    chess::NodeMoveOptimized* next = root.getChild(0);
+    require(next != nullptr, "optimized root lacks a first child");
+    board.makeMove(next->getLastMove());
+
+    next->rebuildUntilDepth(&board);
+    checkOptimizedDepths(*next, 1);
 }
 
 class CountingEvaluator : public GeneralEvaluator {
@@ -160,6 +205,10 @@ int main() {
     runTest("tree_has_consistent_depths", treeHasConsistentDepths, failures);
     runTest("rebuild_preserves_depth_invariants", rebuildPreservesDepthInvariants,
             failures);
+    runTest("optimized_tree_has_consistent_depths",
+            optimizedTreeHasConsistentDepths, failures);
+    runTest("optimized_rebuild_preserves_depth_invariants",
+            optimizedRebuildPreservesDepthInvariants, failures);
     runTest("alpha_beta_matches_minimax_and_prunes",
             alphaBetaMatchesMinimaxAndPrunes, failures);
     return failures == 0 ? 0 : 1;
