@@ -38,9 +38,23 @@ bool isThisMoveLegal(const chess::Board& board, const chess::Move& move) {
 
 int main() {
     chess::Board board(chess::constants::STARTPOS);
-    auto root_node = std::make_unique<chess::NodeMoveOptimized>(&board);
+    auto tree_context =
+        std::make_unique<chess::NodeMoveOptimized::TreeContext>();
+    auto root_node =
+        std::make_unique<chess::NodeMoveOptimized>(*tree_context, &board);
     chess::NodeMoveOptimized* current_node = root_node.get();
+    int current_depth = 0;
     GeneralEvaluator evaluator;
+
+    const auto reset_tree = [&]() {
+        root_node.reset();
+        tree_context =
+            std::make_unique<chess::NodeMoveOptimized::TreeContext>();
+        root_node =
+            std::make_unique<chess::NodeMoveOptimized>(*tree_context, &board);
+        current_node = root_node.get();
+        current_depth = 0;
+    };
 
     std::cout << "¡Bienvenido al juego de ajedrez!\n";
     printBoard(board);
@@ -72,10 +86,10 @@ int main() {
                 current_node->getChildByMove(move);
             if (next) {
                 current_node = next;
-                current_node->rebuildUntilDepth(&board);
+                ++current_depth;
+                current_node->rebuildUntilDepth(&board, current_depth);
             } else {
-                root_node = std::make_unique<chess::NodeMoveOptimized>(&board);
-                current_node = root_node.get();
+                reset_tree();
             }
 
             printBoard(board);
@@ -91,11 +105,11 @@ int main() {
             if (next) {
                 current_node = next;
                 board.makeMove(best_move);
-                current_node->rebuildUntilDepth(&board);
+                ++current_depth;
+                current_node->rebuildUntilDepth(&board, current_depth);
             } else {
                 board.makeMove(best_move);
-                root_node = std::make_unique<chess::NodeMoveOptimized>(&board);
-                current_node = root_node.get();
+                reset_tree();
             }
 
             std::cout << "El motor juega: "

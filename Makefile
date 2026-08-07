@@ -2,7 +2,7 @@
 #
 # Targets principales:
 #   make all      -> compila motor + herramientas de red neuronal
-#   make engine   -> compila los tres bots (incluye alphabeta_optimized)
+#   make engine   -> compila el bot alphabeta_optimized
 #   make neural   -> compila las herramientas de red neuronal
 #   make test     -> compila y ejecuta los tests del motor y de tools
 #   make setup    -> descarga chess.hpp de la libreria disservin/chess-library
@@ -18,14 +18,13 @@ CHESS_HPP_URL := https://raw.githubusercontent.com/Disservin/chess-library/maste
 
 BIN_DIR := bin
 
-ENGINE_OBJS := src/engine/node_move.o \
-               src/engine/evaluation/general_evaluator.o \
+ENGINE_OBJS := src/engine/evaluation/general_evaluator.o \
                src/engine/evaluation/opening_evaluator.o \
                src/engine/evaluation/endgame_evaluator.o
 
 ENGINE_OPT_OBJ := src/engine/node_move_optimized.o
 
-ENGINE_BINS := $(addprefix $(BIN_DIR)/, alphabeta_bot alphabeta_optimized minimax_bot)
+ENGINE_BINS := $(addprefix $(BIN_DIR)/, alphabeta_optimized)
 NEURAL_BINS := $(addprefix $(BIN_DIR)/, square_rook_network json_extractor json_extractor_junior)
 TEST_BINS := $(addprefix $(BIN_DIR)/, test_node_move test_search_benchmark test_json_extractor test_json_extractor_junior)
 
@@ -52,13 +51,7 @@ test: setup $(TEST_BINS)
 	@$(BIN_DIR)/test_json_extractor
 	@$(BIN_DIR)/test_json_extractor_junior
 
-$(BIN_DIR)/alphabeta_bot: src/engine/alphabeta_bot.cpp $(ENGINE_OBJS) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
-
-$(BIN_DIR)/alphabeta_optimized: src/engine/alphabeta_optimized.cpp $(ENGINE_OPT_OBJ) $(filter-out src/engine/node_move.o,$(ENGINE_OBJS)) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
-
-$(BIN_DIR)/minimax_bot: src/engine/minimax_bot.cpp $(ENGINE_OBJS) | $(BIN_DIR)
+$(BIN_DIR)/alphabeta_optimized: src/engine/alphabeta_optimized.cpp $(ENGINE_OPT_OBJ) $(ENGINE_OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
 
 $(BIN_DIR)/test_node_move: test/test_node_move.cpp $(ENGINE_OBJS) $(ENGINE_OPT_OBJ) | $(BIN_DIR)

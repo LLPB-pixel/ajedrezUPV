@@ -35,10 +35,9 @@ target_include_directories(chess_lib INTERFACE ${chess-library_SOURCE_DIR}/inclu
 find_package(OpenMP REQUIRED)
 
 # ---------------------------------------------------------------------------
-# Chess engine library
+# Chess evaluator library
 # ---------------------------------------------------------------------------
 add_library(ajedrez_engine STATIC
-  src/engine/node_move.cpp
   src/engine/evaluation/general_evaluator.cpp
   src/engine/evaluation/opening_evaluator.cpp
   src/engine/evaluation/endgame_evaluator.cpp
@@ -46,23 +45,16 @@ add_library(ajedrez_engine STATIC
 target_include_directories(ajedrez_engine PUBLIC include third_party src)
 target_link_libraries(ajedrez_engine PUBLIC chess_lib OpenMP::OpenMP_CXX)
 
-# Optimized copy. It reuses the evaluator implementation from the regular
-# engine, while keeping the original NodeMove implementation available for
-# side-by-side benchmarks and regression tests.
+# Optimized tree and search implementation. It reuses the evaluator
+# implementation from the engine library.
 add_library(ajedrez_engine_optimized STATIC
   src/engine/node_move_optimized.cpp
 )
 target_include_directories(ajedrez_engine_optimized PUBLIC include third_party src)
 target_link_libraries(ajedrez_engine_optimized PUBLIC ajedrez_engine)
 
-add_executable(alphabeta_bot src/engine/alphabeta_bot.cpp)
-target_link_libraries(alphabeta_bot PRIVATE ajedrez_engine)
-
 add_executable(alphabeta_optimized src/engine/alphabeta_optimized.cpp)
 target_link_libraries(alphabeta_optimized PRIVATE ajedrez_engine_optimized)
-
-add_executable(minimax_bot src/engine/minimax_bot.cpp)
-target_link_libraries(minimax_bot PRIVATE ajedrez_engine)
 
 # ---------------------------------------------------------------------------
 # Neural network tools

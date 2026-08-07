@@ -1,12 +1,9 @@
-#include "chess/node_move.h"
 #include "chess/node_move_optimized.h"
 
 #include <chrono>
-#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -55,82 +52,6 @@ struct SearchResult {
     double search_milliseconds;
 };
 
-SearchResult measureMinimax(const chess::Board& position, int depth,
-                            int iterations) {
-    chess::Board board = position;
-    BenchmarkEvaluator evaluator;
-    CoutSilencer silence_output;
-
-    const auto build_start = std::chrono::steady_clock::now();
-    chess::NodeMove root(&board);
-    const auto build_end = std::chrono::steady_clock::now();
-
-    // Warm up the code path before measuring it.
-    root.minimax(&evaluator, &board, chess::Color::WHITE, depth);
-
-    const auto start = std::chrono::steady_clock::now();
-    float score = 0.0f;
-    chess::Move best_move;
-    for (int iteration = 0; iteration < iterations; ++iteration) {
-        score = root.minimax(&evaluator, &board, chess::Color::WHITE, depth);
-        best_move = root.getBestMove(score);
-    }
-    const auto end = std::chrono::steady_clock::now();
-
-    require(board.getFen() == position.getFen(),
-            "minimax did not restore the benchmark board");
-
-    return {
-        score,
-        chess::uci::moveToUci(best_move),
-        std::chrono::duration<double, std::milli>(build_end - build_start)
-            .count(),
-        std::chrono::duration<double, std::milli>(end - start).count()
-    };
-}
-
-SearchResult measureAlphaBeta(const chess::Board& position, int depth,
-                              int iterations) {
-    chess::Board board = position;
-    BenchmarkEvaluator evaluator;
-    CoutSilencer silence_output;
-
-    const auto build_start = std::chrono::steady_clock::now();
-    chess::NodeMove root(&board);
-    const auto build_end = std::chrono::steady_clock::now();
-
-    float warmup_alpha = -99999.0f;
-    float warmup_beta = 99999.0f;
-    std::mutex warmup_mutex;
-    root.alphaBeta(&evaluator, &warmup_alpha, &warmup_beta,
-                   chess::Color::WHITE, &board, &warmup_mutex, depth);
-
-    const auto start = std::chrono::steady_clock::now();
-    float score = 0.0f;
-    chess::Move best_move;
-    for (int iteration = 0; iteration < iterations; ++iteration) {
-        float alpha = -99999.0f;
-        float beta = 99999.0f;
-        std::mutex alpha_beta_mutex;
-        score = root.alphaBeta(&evaluator, &alpha, &beta,
-                               chess::Color::WHITE, &board,
-                               &alpha_beta_mutex, depth);
-        best_move = root.getBestMove(score);
-    }
-    const auto end = std::chrono::steady_clock::now();
-
-    require(board.getFen() == position.getFen(),
-            "alpha-beta did not restore the benchmark board");
-
-    return {
-        score,
-        chess::uci::moveToUci(best_move),
-        std::chrono::duration<double, std::milli>(build_end - build_start)
-            .count(),
-        std::chrono::duration<double, std::milli>(end - start).count()
-    };
-}
-
 SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
                                        int iterations) {
     chess::Board board = position;
@@ -138,7 +59,8 @@ SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
     CoutSilencer silence_output;
 
     const auto build_start = std::chrono::steady_clock::now();
-    chess::NodeMoveOptimized root(&board);
+    chess::NodeMoveOptimized::TreeContext context;
+    chess::NodeMoveOptimized root(context, &board);
     const auto build_end = std::chrono::steady_clock::now();
 
     // Warm up allocation and instruction-cache paths before timing searches.
@@ -155,6 +77,8 @@ SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
 
     require(board.getFen() == position.getFen(),
             "optimized alpha-beta did not restore the benchmark board");
+    require(root.getChildByMove(best_move) != nullptr,
+            "optimized alpha-beta returned an invalid best move");
 
     return {
         score,
@@ -165,54 +89,26 @@ SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
     };
 }
 
-void compareSearchesAtSeveralDepths() {
+void benchmarkOptimizedAlphaBetaAtSeveralDepths() {
     const chess::Board position(chess::constants::STARTPOS);
     constexpr int iterations = 3;
 
     std::cout << std::fixed << std::setprecision(3);
     for (const int depth : {1, 2, 3}) {
-        SearchResult minimax = measureMinimax(position, depth, iterations);
-        SearchResult alpha_beta = measureAlphaBeta(position, depth, iterations);
-        SearchResult optimized =
+        const SearchResult result =
             measureOptimizedAlphaBeta(position, depth, iterations);
 
-        require(std::fabs(minimax.score - alpha_beta.score) < 0.00001f,
-                "minimax and alpha-beta disagree on the search score");
-        require(std::fabs(alpha_beta.score - optimized.score) < 0.00001f,
-                "optimized alpha-beta changed the search score");
-        require(minimax.move == alpha_beta.move,
-                "minimax and alpha-beta return different best moves");
-        require(alpha_beta.move == optimized.move,
-                "optimized alpha-beta returned a different best move");
-        require(!minimax.move.empty() && minimax.move != "0000",
-                "minimax did not return a best move");
-        require(!alpha_beta.move.empty() && alpha_beta.move != "0000",
-                "alpha-beta did not return a best move");
-        require(!optimized.move.empty() && optimized.move != "0000",
+        require(!result.move.empty() && result.move != "0000",
                 "optimized alpha-beta did not return a best move");
-        require(minimax.search_milliseconds > 0.0 &&
-                    alpha_beta.search_milliseconds > 0.0 &&
-                    optimized.search_milliseconds > 0.0,
+        require(result.search_milliseconds > 0.0,
                 "search timing did not produce a positive duration");
-        require(minimax.build_milliseconds > 0.0 &&
-                    alpha_beta.build_milliseconds > 0.0 &&
-                    optimized.build_milliseconds > 0.0,
+        require(result.build_milliseconds > 0.0,
                 "tree construction timing did not produce a positive duration");
 
-        const double alpha_beta_speedup =
-            alpha_beta.search_milliseconds / optimized.search_milliseconds;
-        const double build_speedup =
-            alpha_beta.build_milliseconds / optimized.build_milliseconds;
         std::cout << "depth=" << depth
-                  << " move=" << minimax.move
-                  << " baseline_build_ms=" << alpha_beta.build_milliseconds
-                  << " optimized_build_ms=" << optimized.build_milliseconds
-                  << " baseline_alpha_beta_ms="
-                  << alpha_beta.search_milliseconds
-                  << " optimized_alpha_beta_ms="
-                  << optimized.search_milliseconds
-                  << " build_speedup=" << build_speedup << "x"
-                  << " search_speedup=" << alpha_beta_speedup << "x\n";
+                  << " move=" << result.move
+                  << " build_ms=" << result.build_milliseconds
+                  << " alpha_beta_ms=" << result.search_milliseconds << '\n';
     }
 }
 
@@ -220,7 +116,7 @@ void compareSearchesAtSeveralDepths() {
 
 int main() {
     try {
-        compareSearchesAtSeveralDepths();
+        benchmarkOptimizedAlphaBetaAtSeveralDepths();
         std::cout << "PASS search_benchmark\n";
         return 0;
     } catch (const std::exception& error) {

@@ -5,7 +5,7 @@
 ## Características
 
 - Motor de ajedrez en C++ (con la librería [Disservin chess-library](https://disservin.github.io/chess-library/))
-- Algoritmos de búsqueda: Minimax y poda Alpha-Beta (paralelizado)
+- Algoritmo de búsqueda: poda Alpha-Beta optimizada
 - Evaluación heurística: material, estructura de peones, seguridad de rey y control
 - Redes neuronales (C++) para la toma de decisiones
 - Soporte de notación UCI ([Universal Chess Interface](https://en.wikipedia.org/wiki/Universal_Chess_Interface))
@@ -18,16 +18,15 @@ ajedrezUPV/
 ├── CMakeLists.txt            # Build con CMake (descarga chess-library automáticamente)
 ├── Makefile                  # Build alternativo con g++ (make setup descarga la librería)
 ├── include/chess/            # Cabeceras públicas del motor
-│   ├── node_move.h           #   Nodo del árbol de juego (minimax/alpha-beta)
+│   ├── node_move_optimized.h #   Nodo compacto del árbol (Alpha-Beta)
 │   ├── evaluator.h           #   Interfaz base de evaluación
 │   ├── general_evaluator.h   #   Evaluador general
 │   ├── opening_evaluator.h   #   Evaluador de apertura
 │   └── endgame_evaluator.h   #   Evaluador de finales
 ├── src/
 │   ├── engine/               # Motor de juego
-│   │   ├── alphabeta_bot.cpp #   Bot principal (poda Alpha-Beta)
-│   │   ├── minimax_bot.cpp   #   Bot con Minimax
-│   │   ├── node_move.cpp     #   Implementación del árbol de juego
+│   │   ├── alphabeta_optimized.cpp # Bot principal (poda Alpha-Beta)
+│   │   ├── node_move_optimized.cpp # Implementación del árbol optimizado
 │   │   └── evaluation/       #   Evaluadores (implementación)
 │   ├── neural/               # Redes neuronales en C++
 │   │   ├── square_rook_network.cpp  #   Red grande (input 2565)
@@ -68,7 +67,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-Los ejecutables quedan en `build/` (`alphabeta_bot`, `minimax_bot`, `square_rook_network`, `json_extractor`, `json_extractor_junior`).
+Los ejecutables quedan en `build/` (`alphabeta_optimized`, `square_rook_network`, `json_extractor`, `json_extractor_junior`).
 
 ### Con Makefile
 
@@ -81,13 +80,12 @@ Los binarios quedan en `bin/`.
 ## Uso
 
 ```bash
-./bin/alphabeta_bot        # Jugar contra el motor (notación UCI, ej: e2e4)
-./bin/minimax_bot
+./bin/alphabeta_optimized  # Jugar contra el motor (notación UCI, ej: e2e4)
 ```
 
 ## Estado
 
-- [x] Motor de ajedrez, Minimax y Alpha-Beta
+- [x] Motor de ajedrez con poda Alpha-Beta
 - [x] Sistema de evaluación (apertura/final)
 - [x] Comprobación de victoria
 - [ ] Red neuronal avanzada para ajedrez

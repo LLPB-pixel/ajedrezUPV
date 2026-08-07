@@ -6,29 +6,22 @@
 
 namespace chess {
 
-NodeMoveOptimized::NodeMoveOptimized(Board* board, NodeMoveOptimized* parent)
-    : storage_owner_(parent ? nullptr : std::make_unique<Storage>()),
-      storage_(parent ? parent->storage_ : storage_owner_.get()),
-      current_depth_(parent ? parent->current_depth_ + 1 : 0),
-      last_move_(),
-      children_(&storage_->pool) {
-    buildChildren(board);
+NodeMoveOptimized::NodeMoveOptimized(TreeContext& context, Board* board)
+    : last_move_(), children_(&context.pool) {
+    buildChildren(board, 0, &context.pool);
 }
 
 NodeMoveOptimized::NodeMoveOptimized(Board* board, int depth, Move last_move,
-                                     Storage* storage)
-    : storage_owner_(),
-      storage_(storage),
-      current_depth_(depth),
-      last_move_(last_move),
-      children_(&storage_->pool) {
-    buildChildren(board);
+                                     std::pmr::memory_resource* resource)
+    : last_move_(last_move), children_(resource) {
+    buildChildren(board, depth, resource);
 }
 
-void NodeMoveOptimized::buildChildren(Board* board) {
+void NodeMoveOptimized::buildChildren(
+    Board* board, int depth, std::pmr::memory_resource* resource) {
     children_.clear();
 
-    if (current_depth_ >= MAX_DEPTH) {
+    if (depth >= MAX_DEPTH) {
         return;
     }
 
@@ -42,8 +35,8 @@ void NodeMoveOptimized::buildChildren(Board* board) {
     for (size_t index = 0; index < child_count; ++index) {
         const Move move = moves[index];
         board->makeMove(move);
-        children_.push_back(
-            NodeMoveOptimized(board, current_depth_ + 1, move, storage_));
+        children_.push_back(NodeMoveOptimized(board, depth + 1, move,
+                                              resource));
         board->unmakeMove(move);
     }
 }
@@ -65,36 +58,39 @@ bool NodeMoveOptimized::isSearchTerminal(const Board& board) noexcept {
     return board.halfMoveClock() >= 4 && board.isRepetition();
 }
 
-void NodeMoveOptimized::rebuildUntilDepth(Board* board) {
-    if (current_depth_ >= MAX_DEPTH - 1) {
-        buildChildren(board);
+void NodeMoveOptimized::rebuildUntilDepth(Board* board, int current_depth) {
+    std::pmr::memory_resource* resource = children_.get_allocator().resource();
+
+    if (current_depth >= MAX_DEPTH - 1) {
+        buildChildren(board, current_depth, resource);
         return;
     }
 
     for (NodeMoveOptimized& child : children_) {
         board->makeMove(child.last_move_);
-        child.rebuildUntilDepth(board);
+        child.rebuildUntilDepth(board, current_depth + 1);
         board->unmakeMove(child.last_move_);
     }
 }
 
-void NodeMoveOptimized::addChild(Board* board, Move move) {
-    if (current_depth_ >= MAX_DEPTH || children_.size() >= MAX_BRANCH) {
+void NodeMoveOptimized::addChild(Board* board, Move move, int current_depth) {
+    if (current_depth >= MAX_DEPTH || children_.size() >= MAX_BRANCH) {
         return;
     }
 
-    children_.push_back(
-        NodeMoveOptimized(board, current_depth_ + 1, move, storage_));
+    children_.push_back(NodeMoveOptimized(
+        board, current_depth + 1, move, children_.get_allocator().resource()));
 }
 
 float NodeMoveOptimized::minimax(GeneralEvaluator* evaluator, Board* board,
                                  Color root_color, int depth_limit) {
-    return minimaxImpl(evaluator, *board, root_color, depth_limit);
+    return minimaxImpl(evaluator, *board, root_color, depth_limit, 0);
 }
 
 float NodeMoveOptimized::minimaxImpl(GeneralEvaluator* evaluator, Board& board,
-                                     Color root_color, int depth_limit) {
-    if (current_depth_ >= depth_limit || current_depth_ >= MAX_DEPTH ||
+                                     Color root_color, int depth_limit,
+                                     int searched_depth) {
+    if (searched_depth >= depth_limit || searched_depth >= MAX_DEPTH ||
         children_.empty() || isSearchTerminal(board)) {
         eval_ = evaluator->evaluate(&board, root_color);
         return eval_;
@@ -106,7 +102,8 @@ float NodeMoveOptimized::minimaxImpl(GeneralEvaluator* evaluator, Board& board,
     for (NodeMoveOptimized& child : children_) {
         board.makeMove(child.last_move_);
         const float value =
-            child.minimaxImpl(evaluator, board, root_color, depth_limit);
+            child.minimaxImpl(evaluator, board, root_color, depth_limit,
+                              searched_depth + 1);
         board.unmakeMove(child.last_move_);
 
         best_value = maximizing ? std::max(best_value, value)
@@ -121,7 +118,7 @@ float NodeMoveOptimized::alphaBeta(GeneralEvaluator* evaluator,
                                    Color root_color, Board* board,
                                    int depth_limit) {
     return alphaBetaImpl(evaluator, *board, root_color, depth_limit,
-                         NEGATIVE_INFINITY, POSITIVE_INFINITY);
+                         NEGATIVE_INFINITY, POSITIVE_INFINITY, 0);
 }
 
 float NodeMoveOptimized::alphaBeta(
@@ -132,7 +129,8 @@ float NodeMoveOptimized::alphaBeta(
     const float initial_alpha = alpha ? *alpha : NEGATIVE_INFINITY;
     const float initial_beta = beta ? *beta : POSITIVE_INFINITY;
     const float score = alphaBetaImpl(evaluator, *board, root_color,
-                                      depth_limit, initial_alpha, initial_beta);
+                                       depth_limit, initial_alpha, initial_beta,
+                                       0);
 
     // Match the observable part of the original pointer-based API without
     // carrying pointers through every recursive call.
@@ -148,8 +146,8 @@ float NodeMoveOptimized::alphaBeta(
 float NodeMoveOptimized::alphaBetaImpl(GeneralEvaluator* evaluator,
                                        Board& board, Color root_color,
                                        int depth_limit, float alpha,
-                                       float beta) {
-    if (current_depth_ >= depth_limit || current_depth_ >= MAX_DEPTH ||
+                                       float beta, int searched_depth) {
+    if (searched_depth >= depth_limit || searched_depth >= MAX_DEPTH ||
         children_.empty() || isSearchTerminal(board)) {
         eval_ = evaluator->evaluate(&board, root_color);
         return eval_;
@@ -161,7 +159,8 @@ float NodeMoveOptimized::alphaBetaImpl(GeneralEvaluator* evaluator,
     for (NodeMoveOptimized& child : children_) {
         board.makeMove(child.last_move_);
         const float value = child.alphaBetaImpl(
-            evaluator, board, root_color, depth_limit, alpha, beta);
+            evaluator, board, root_color, depth_limit, alpha, beta,
+            searched_depth + 1);
         board.unmakeMove(child.last_move_);
 
         if (maximizing) {
@@ -218,13 +217,17 @@ const NodeMoveOptimized* NodeMoveOptimized::getChildByMove(
 }
 
 void NodeMoveOptimized::printTree(int indent) const {
+    printTreeImpl(indent, 0);
+}
+
+void NodeMoveOptimized::printTreeImpl(int indent, int depth) const {
     std::cout << std::string(indent, ' ') << "Nodo profundidad "
-              << current_depth_ << " - Movimiento: "
+              << depth << " - Movimiento: "
               << uci::moveToUci(last_move_) << " - Hijos: "
               << children_.size() << " - Eval: " << eval_ << '\n';
 
     for (const NodeMoveOptimized& child : children_) {
-        child.printTree(indent + 4);
+        child.printTreeImpl(indent + 4, depth + 1);
     }
 }
 

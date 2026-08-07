@@ -1,10 +1,7 @@
-#include "chess/node_move.h"
 #include "chess/node_move_optimized.h"
 
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -36,52 +33,8 @@ private:
     std::streambuf* old_buffer_;
 };
 
-void checkDepths(const chess::NodeMove& node, int expected_depth) {
-    require(node.getCurrentDepth() == expected_depth,
-            "node depth does not match its position in the tree");
-    require(node.getChildCount() <= chess::MAX_BRANCH,
-            "node contains more children than MAX_BRANCH");
-
-    if (expected_depth == chess::MAX_DEPTH) {
-        require(node.getChildCount() == 0,
-                "a node at MAX_DEPTH must not have children");
-        return;
-    }
-
-    for (size_t index = 0; index < node.getChildCount(); ++index) {
-        const chess::NodeMove* child = node.getChild(index);
-        require(child != nullptr, "child slot is null inside child_count");
-        checkDepths(*child, expected_depth + 1);
-    }
-}
-
-void treeHasConsistentDepths() {
-    chess::Board board(chess::constants::STARTPOS);
-    CoutSilencer silence_output;
-    chess::NodeMove root(&board);
-
-    require(root.getCurrentDepth() == 0, "root must start at depth zero");
-    require(root.getChildCount() > 0, "root tree was not generated");
-    checkDepths(root, 0);
-}
-
-void rebuildPreservesDepthInvariants() {
-    chess::Board board(chess::constants::STARTPOS);
-    CoutSilencer silence_output;
-    chess::NodeMove root(&board);
-
-    chess::NodeMove* next = root.getChild(0);
-    require(next != nullptr, "root does not contain a first child");
-    board.makeMove(next->getLastMove());
-
-    next->rebuildUntilDepth(&board);
-    checkDepths(*next, 1);
-}
-
 void checkOptimizedDepths(const chess::NodeMoveOptimized& node,
                           int expected_depth) {
-    require(node.getCurrentDepth() == expected_depth,
-            "optimized node depth does not match its position in the tree");
     require(node.getChildCount() <= chess::MAX_BRANCH,
             "optimized node contains too many children");
 
@@ -101,10 +54,9 @@ void checkOptimizedDepths(const chess::NodeMoveOptimized& node,
 
 void optimizedTreeHasConsistentDepths() {
     chess::Board board(chess::constants::STARTPOS);
-    chess::NodeMoveOptimized root(&board);
+    chess::NodeMoveOptimized::TreeContext context;
+    chess::NodeMoveOptimized root(context, &board);
 
-    require(root.getCurrentDepth() == 0,
-            "optimized root must start at depth zero");
     require(root.getChildCount() > 0,
             "optimized root tree was not generated");
     checkOptimizedDepths(root, 0);
@@ -112,13 +64,14 @@ void optimizedTreeHasConsistentDepths() {
 
 void optimizedRebuildPreservesDepthInvariants() {
     chess::Board board(chess::constants::STARTPOS);
-    chess::NodeMoveOptimized root(&board);
+    chess::NodeMoveOptimized::TreeContext context;
+    chess::NodeMoveOptimized root(context, &board);
 
     chess::NodeMoveOptimized* next = root.getChild(0);
     require(next != nullptr, "optimized root lacks a first child");
     board.makeMove(next->getLastMove());
 
-    next->rebuildUntilDepth(&board);
+    next->rebuildUntilDepth(&board, 1);
     checkOptimizedDepths(*next, 1);
 }
 
@@ -140,50 +93,27 @@ public:
     }
 };
 
-void alphaBetaMatchesMinimaxAndPrunes() {
-    chess::Board minimax_board(chess::constants::STARTPOS);
+void optimizedAlphaBetaSearchesAndRestoresBoard() {
     chess::Board alpha_beta_board(chess::constants::STARTPOS);
-    CountingEvaluator minimax_evaluator;
     CountingEvaluator alpha_beta_evaluator;
 
-    float minimax_score;
     float alpha_beta_score;
-    chess::Move minimax_move;
     chess::Move alpha_beta_move;
 
     {
         CoutSilencer silence_output;
-        chess::NodeMove minimax_root(&minimax_board);
-        minimax_score = minimax_root.minimax(
-            &minimax_evaluator, &minimax_board, chess::Color::WHITE);
-        minimax_move = minimax_root.getBestMove(minimax_score);
-    }
-
-    {
-        CoutSilencer silence_output;
-        chess::NodeMove alpha_beta_root(&alpha_beta_board);
-        float alpha = -99999.0f;
-        float beta = 99999.0f;
-        std::mutex alpha_beta_mutex;
+        chess::NodeMoveOptimized::TreeContext context;
+        chess::NodeMoveOptimized alpha_beta_root(context, &alpha_beta_board);
         alpha_beta_score = alpha_beta_root.alphaBeta(
-            &alpha_beta_evaluator, &alpha, &beta, chess::Color::WHITE,
-            &alpha_beta_board, &alpha_beta_mutex);
+            &alpha_beta_evaluator, chess::Color::WHITE, &alpha_beta_board);
         alpha_beta_move = alpha_beta_root.getBestMove(alpha_beta_score);
 
         require(alpha_beta_root.getChildByMove(alpha_beta_move) != nullptr,
                 "alpha-beta did not return one of the root moves");
     }
 
-    require(std::fabs(minimax_score - alpha_beta_score) < 0.00001f,
-            "alpha-beta and minimax returned different scores");
-    require(minimax_evaluator.evaluations > 0,
-            "minimax did not evaluate any leaf");
     require(alpha_beta_evaluator.evaluations > 0,
             "alpha-beta did not evaluate any leaf");
-    require(alpha_beta_evaluator.evaluations < minimax_evaluator.evaluations,
-            "alpha-beta did not reduce the number of leaf evaluations");
-    require(minimax_board.getFen() == chess::Board(chess::constants::STARTPOS).getFen(),
-            "minimax did not restore the input board");
     require(alpha_beta_board.getFen() == chess::Board(chess::constants::STARTPOS).getFen(),
             "alpha-beta did not restore the input board");
 }
@@ -202,14 +132,11 @@ void runTest(const char* name, void (*test)(), int& failures) {
 
 int main() {
     int failures = 0;
-    runTest("tree_has_consistent_depths", treeHasConsistentDepths, failures);
-    runTest("rebuild_preserves_depth_invariants", rebuildPreservesDepthInvariants,
-            failures);
     runTest("optimized_tree_has_consistent_depths",
             optimizedTreeHasConsistentDepths, failures);
     runTest("optimized_rebuild_preserves_depth_invariants",
             optimizedRebuildPreservesDepthInvariants, failures);
-    runTest("alpha_beta_matches_minimax_and_prunes",
-            alphaBetaMatchesMinimaxAndPrunes, failures);
+    runTest("optimized_alpha_beta_searches_and_restores_board",
+            optimizedAlphaBetaSearchesAndRestoresBoard, failures);
     return failures == 0 ? 0 : 1;
 }
