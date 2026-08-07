@@ -4,6 +4,8 @@ project(ajedrezUPV
         DESCRIPTION "Artificial intelligence chess engine (UPV)"
         LANGUAGES CXX)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -65,3 +67,23 @@ foreach(src IN LISTS NEURAL_TOOLS)
   target_include_directories(${target_name} PRIVATE include third_party src)
   target_link_libraries(${target_name} PRIVATE chess_lib OpenMP::OpenMP_CXX)
 endforeach()
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+if(BUILD_TESTING)
+  add_executable(test_node_move test/test_node_move.cpp)
+  target_include_directories(test_node_move PRIVATE include third_party src)
+  target_link_libraries(test_node_move PRIVATE ajedrez_engine)
+  add_test(NAME node_move_tests COMMAND test_node_move)
+
+  add_executable(test_json_extractor test/test_json_extractor.cpp)
+  target_include_directories(test_json_extractor PRIVATE include third_party src)
+  target_link_libraries(test_json_extractor PRIVATE chess_lib OpenMP::OpenMP_CXX)
+  add_test(NAME json_extractor_tests COMMAND test_json_extractor)
+
+  add_executable(test_json_extractor_junior test/test_json_extractor_junior.cpp)
+  target_include_directories(test_json_extractor_junior PRIVATE include third_party src)
+  target_link_libraries(test_json_extractor_junior PRIVATE chess_lib OpenMP::OpenMP_CXX)
+  add_test(NAME json_extractor_junior_tests COMMAND test_json_extractor_junior)
+endif()

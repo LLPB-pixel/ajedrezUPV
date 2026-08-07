@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <mutex>
+#include <memory>
 
 void printBoard(const chess::Board& board) {
     std::cout << "  +-----------------+\n";
@@ -29,8 +30,8 @@ bool isThisMoveLegal(const chess::Board& board, const chess::Move& move) {
 
 int main() {
     chess::Board board(chess::constants::STARTPOS);
-    NodeMove rootNode(&board);  // solo una vez
-    NodeMove* currentNode = &rootNode;
+    auto rootNode = std::make_unique<NodeMove>(&board);
+    NodeMove* currentNode = rootNode.get();
     GeneralEvaluator evaluator;
 
     std::cout << "¡Bienvenido al juego de ajedrez!\n";
@@ -38,7 +39,6 @@ int main() {
 
     while (board.isGameOver().second == chess::GameResult::NONE) {
         if (board.sideToMove() == chess::Color::BLACK) {
-            // Human player turn
             std::string userMove;
             chess::Move move;
             bool illegalMove = true;
@@ -67,7 +67,8 @@ int main() {
                 currentNode->rebuildUntilDepth(&board);
             } else {
                 std::cout << "Movimiento inesperado. Recalculando árbol...\n";
-                currentNode = new NodeMove(&board);  // o manejar memoria con smart pointer
+                rootNode = std::make_unique<NodeMove>(&board);
+                currentNode = rootNode.get();
             }
 
             printBoard(board);

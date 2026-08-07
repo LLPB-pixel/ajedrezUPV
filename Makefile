@@ -4,6 +4,7 @@
 #   make all      -> compila motor + herramientas de red neuronal
 #   make engine   -> compila los dos bots (alphabeta_bot, minimax_bot)
 #   make neural   -> compila las herramientas de red neuronal
+#   make test     -> compila y ejecuta los tests del motor y de tools
 #   make setup    -> descarga chess.hpp de la libreria disservin/chess-library
 #   make clean    -> elimina binarios y objetos
 #
@@ -24,8 +25,9 @@ ENGINE_OBJS := src/engine/node_move.o \
 
 ENGINE_BINS := $(addprefix $(BIN_DIR)/, alphabeta_bot minimax_bot)
 NEURAL_BINS := $(addprefix $(BIN_DIR)/, square_rook_network json_extractor json_extractor_junior)
+TEST_BINS := $(addprefix $(BIN_DIR)/, test_node_move test_json_extractor test_json_extractor_junior)
 
-.PHONY: all setup engine neural clean
+.PHONY: all setup engine neural test clean
 
 all: engine neural
 
@@ -42,10 +44,24 @@ engine: setup $(ENGINE_BINS)
 
 neural: setup $(NEURAL_BINS)
 
+test: setup $(TEST_BINS)
+	@$(BIN_DIR)/test_node_move
+	@$(BIN_DIR)/test_json_extractor
+	@$(BIN_DIR)/test_json_extractor_junior
+
 $(BIN_DIR)/alphabeta_bot: src/engine/alphabeta_bot.cpp $(ENGINE_OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
 
 $(BIN_DIR)/minimax_bot: src/engine/minimax_bot.cpp $(ENGINE_OBJS) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
+
+$(BIN_DIR)/test_node_move: test/test_node_move.cpp $(ENGINE_OBJS) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
+
+$(BIN_DIR)/test_json_extractor: test/test_json_extractor.cpp | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
+
+$(BIN_DIR)/test_json_extractor_junior: test/test_json_extractor_junior.cpp | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
 
 $(BIN_DIR)/square_rook_network: src/neural/square_rook_network.cpp | $(BIN_DIR)

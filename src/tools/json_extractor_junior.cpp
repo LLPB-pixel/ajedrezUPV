@@ -33,19 +33,23 @@ void manejadorInterrupcion(int signal) {
 void procesarLinea(const std::string& linea, std::vector<Registro>& resultados) {
     json j = json::parse(linea);
 
-    if (!j.contains("fen") || !j["evals"].is_array()) {
+    if (!j.contains("fen") || !j["fen"].is_string() ||
+        !j.contains("evals") || !j["evals"].is_array() ||
+        j["evals"].empty()) {
         return;
     }
 
     std::string fen = j["fen"];
     const auto& eval = j["evals"][0];
 
-    if (!eval.contains("pvs") || !eval["pvs"].is_array()) {
+    if (!eval.is_object() || !eval.contains("pvs") ||
+        !eval["pvs"].is_array()) {
         return;
     }
 
     for (const auto& pv : eval["pvs"]) {
-        if (!pv.contains("cp")) {
+        if (!pv.is_object() || !pv.contains("cp") ||
+            !pv["cp"].is_number_integer()) {
             continue;
         }
 
@@ -124,6 +128,7 @@ void convertirFENaInput(const std::string& fen, float* input) {
     input[index++] = castlingRights.has(chess::Color::WHITE, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
     input[index++] = castlingRights.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::KING_SIDE) ? 1.0f : 0.0f;
     input[index++] = castlingRights.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
+    input[index++] = board.sideToMove() == chess::Color::WHITE ? 1.0f : 0.0f;
 }
 
 int main() {
