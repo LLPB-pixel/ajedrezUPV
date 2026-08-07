@@ -77,6 +77,11 @@ if(BUILD_TESTING)
   target_link_libraries(test_node_move PRIVATE ajedrez_engine)
   add_test(NAME node_move_tests COMMAND test_node_move)
 
+  add_executable(test_search_benchmark test/test_search_benchmark.cpp)
+  target_include_directories(test_search_benchmark PRIVATE include third_party src)
+  target_link_libraries(test_search_benchmark PRIVATE ajedrez_engine)
+  add_test(NAME search_benchmark_tests COMMAND test_search_benchmark)
+
   add_executable(test_json_extractor test/test_json_extractor.cpp)
   target_include_directories(test_json_extractor PRIVATE include third_party src)
   target_link_libraries(test_json_extractor PRIVATE chess_lib OpenMP::OpenMP_CXX)

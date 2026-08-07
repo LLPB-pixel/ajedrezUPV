@@ -235,9 +235,11 @@ void NodeMove::printBoard(Board &board) const {
 
 
 
-float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_color) {
+float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board,
+                        Color root_color, int depth_limit) {
     auto [reason, result] = board->isGameOver();
-    if(result != GameResult::NONE || current_depth_ >= MAX_DEPTH || child_count_ == 0) {
+    if(result != GameResult::NONE || current_depth_ >= depth_limit ||
+       current_depth_ >= MAX_DEPTH || child_count_ == 0) {
         eval_ = evaluator->evaluate(board, root_color);
         return eval_;
     }
@@ -246,7 +248,8 @@ float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_co
         float best_value = -99999.0f;
         for (size_t i = 0; i < child_count_; ++i) {
             board->makeMove(children_[i]->last_move_);
-            float value = children_[i]->minimax(evaluator, board, root_color);
+            float value = children_[i]->minimax(evaluator, board, root_color,
+                                                depth_limit);
             board->unmakeMove(children_[i]->last_move_);
             best_value = std::max(best_value, value);
         }
@@ -256,7 +259,8 @@ float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_co
         float best_value = 99999.0f;
         for (size_t i = 0; i < child_count_; ++i) {
             board->makeMove(children_[i]->last_move_);
-            float value = children_[i]->minimax(evaluator, board, root_color);
+            float value = children_[i]->minimax(evaluator, board, root_color,
+                                                depth_limit);
             board->unmakeMove(children_[i]->last_move_);
             best_value = std::min(best_value, value);
         }
@@ -264,9 +268,12 @@ float NodeMove::minimax(GeneralEvaluator* evaluator, Board *board, Color root_co
         return best_value;
     }
 }
-float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta, Color root_color, Board* board, std::mutex *alphaBetaMutex) {
+float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float *alpha,
+                          float *beta, Color root_color, Board* board,
+                          std::mutex *alphaBetaMutex, int depth_limit) {
     auto [reason, result] = board->isGameOver();
-    if (result != GameResult::NONE || current_depth_ >= MAX_DEPTH || child_count_ == 0) {
+    if (result != GameResult::NONE || current_depth_ >= depth_limit ||
+        current_depth_ >= MAX_DEPTH || child_count_ == 0) {
         eval_ = evaluator->evaluate(board, root_color);
         return eval_;
     }
@@ -285,7 +292,7 @@ float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta
             float childBeta = localBeta;
             float value = children_[i]->alphaBeta(
                 evaluator, &childAlpha, &childBeta, root_color, board,
-                alphaBetaMutex);
+                alphaBetaMutex, depth_limit);
             board->unmakeMove(children_[i]->last_move_);
             bestValue = std::max(bestValue, value);
 
@@ -307,7 +314,7 @@ float NodeMove::alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta
             float childBeta = localBeta;
             float value = children_[i]->alphaBeta(
                 evaluator, &childAlpha, &childBeta, root_color, board,
-                alphaBetaMutex);
+                alphaBetaMutex, depth_limit);
             board->unmakeMove(children_[i]->last_move_);
             bestValue = std::min(bestValue, value);
 

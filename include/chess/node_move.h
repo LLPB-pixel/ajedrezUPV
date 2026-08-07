@@ -37,8 +37,11 @@ public:
     void printEvaluationsOfChildren() const;
     void printBoard(Board &board) const;
     int evaluateBoard() const;
-    float minimax(GeneralEvaluator* evaluator, Board *board, Color root_color);
-    float alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta, Color root_color, Board* board, std::mutex* alphaBetaMutex);
+    float minimax(GeneralEvaluator* evaluator, Board *board, Color root_color,
+                  int depth_limit = MAX_DEPTH);
+    float alphaBeta(GeneralEvaluator* evaluator, float *alpha, float *beta,
+                    Color root_color, Board* board,
+                    std::mutex* alphaBetaMutex, int depth_limit = MAX_DEPTH);
     chess::Move getBestMove(float best_score) const;
     
     // Getters varios
