@@ -1,15 +1,22 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
 
 \geometry{a4paper,total={170mm,257mm},left=20mm,top=20mm}
 
-\title{\textbf{ajedrezUPV - Project Documentation}\\[0.5cm]\large Artificial Intelligence Chess Engine Project}
-\author{Developed at Universitat Politècnica de València (UPV) \\ \texttt{perezllorenc@gmail.com}}
+\title{\textbf{ajedrezUPV --- Documentacion del proyecto}\\[0.5cm]
+\large Motor de ajedrez con inteligencia artificial}
+\author{Desarrollado en la Universitat Politecnica de Valencia (UPV)\\
+\texttt{perezllorenc@gmail.com}}
 \date{\today}
 
 \begin{document}
@@ -18,129 +25,337 @@
 \tableofcontents
 \newpage
 
-\section{Project Overview}
-\textbf{ajedrezUPV} is an AI chess project from UPV. Focus: decision algorithms, heuristic evaluation, game engine programming.
+% ===========================================================================
+\section{Visión general}
+% ===========================================================================
 
-\subsection*{Key Features}
+\textbf{ajedrezUPV} es un motor de ajedrez con inteligencia artificial,
+desarrollado en el marco de la Universitat Politecnica de Valencia (UPV).
+Combina algoritmos de busqueda avanzados (alpha-beta con profundizacion
+iterativa, tabla de transposicion, quiescence search, ordenacion de
+movimientos) con redes neuronales para la evaluacion de posiciones.
+
+\subsection*{Caracteristicas principales}
 \begin{itemize}
-    \item Custom chess engine (C++23)
-    \item Alpha-Beta pruning algorithm
-    \item UCI notation support
-    \item Neural network integration
-    \item Modular and extensible code
-    \item Human vs AI gameplay
+  \item Motor de ajedrez en C++17 con la libreria
+        \href{https://disservin.github.io/chess-library/}{Disservin chess-library}
+  \item \textbf{Busqueda avanzada}: Alpha-Beta con profundizacion iterativa,
+        aspiration windows, tabla de transposicion (4-way set-associative),
+        quiescence search con stand-pat, ordenacion de movimientos (TT move,
+        MVV-LVA, killers, history heuristic)
+  \item \textbf{Evaluacion heuristica}: material con mapas de calor,
+        estructura de peones (aislados, doblados, pasados), seguridad del rey
+        (fraccion de casillas vecinas bajo ataque enemigo), control del
+        tablero, deteccion correcta de jaque mate y tablas
+  \item \textbf{Redes neuronales} (C++): red grande
+        ($2565 \to 2048 \to 1536 \to 1024 \to 768 \to 512 \to 256 \to 1$,
+        $\sim$14M parametros) y red junior ($782 \to 512 \to 512 \to 1$)
+        con inicializacion He, perdida MSE, y serializacion JSON/binaria
+  \item \textbf{Entrenamiento PyTorch}: script con mini-batches, perspectiva
+        del lado al mueve, objetivo $\tanh(cp/400)$, exportacion a binario
+        para inferencia C++
+  \item Protocolo de juego interactivo con comandos: movimientos UCI,
+        \texttt{undo}, \texttt{new}, \texttt{fen}, \texttt{d}, \texttt{go depth N}
+  \item 52 tests automatizados (unitarios, perft, mate-in-N, end-to-end)
 \end{itemize}
 
-\section{Repository Structure}
+% ===========================================================================
+\section{Estructura del repositorio}
+% ===========================================================================
+
 \begin{center}
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Path} & \textbf{Description} \\
-\hline
-. & Root \\
-README.md & Main documentation \\
-LICENSE & CC BY-NC 4.0 \\
-CMakeLists.txt & CMake build \\
-Makefile & Make build \\
-\hline
-include/chess/ & Public headers \\
-& node\_move.h \\
-& evaluator.h \\
-& general\_evaluator.h \\
-& opening\_evaluator.h \\
-& endgame\_evaluator.h \\
-\hline
-src/engine/ & Chess engine \\
-& alphabeta\_bot.cpp \\
-& minimax\_bot.cpp \\
-& node\_move.cpp/h \\
-& evaluation/ \\
-\hline
-src/neural/ & Neural networks (C++) \\
-& square\_rook\_network.cpp \\
-& network\_junior.hpp \\
-& simd\_network\_wip.cpp \\
-\hline
-src/tools/ & Data tools \\
-& json\_extractor.cpp \\
-& json\_extractor\_junior.cpp \\
-\hline
-python/ & Python tools \\
-& model.py \\
-& mnist\_loader.py \\
-& network\_reference.py \\
-\hline
-data/ & Data files \\
-& dataset.csv \\
-\hline
-third\_party/ & Third-party headers \\
-& json.hpp \\
-\hline
-docs/ & Documentation \\
-& FEN.pdf \\
-& PROJECT\_DOCUMENTATION.tex/.pdf \\
-\hline
-lichess\_db/ & Lichess DB \\
-& chunk\_000 to chunk\_019.jsonl \\
-\hline
-\end{tabular}
+\small
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Ruta} & \textbf{Descripcion} \\
+\midrule
+\texttt{CMakeLists.txt} & Build CMake (con FetchContent para chess-library) \\
+\texttt{Makefile} & Build Make \\
+\texttt{play.sh} & Script para jugar facilmente \\
+\texttt{requirements.txt} & Dependencias Python \\
+\midrule
+\texttt{include/chess/} & Cabeceras publicas del motor \\
+\quad \texttt{evaluator.h} & Interfaz base de evaluacion + constantes (\texttt{eval::} namespace) \\
+\quad \texttt{general\_evaluator.h} & Evaluador general con metodos comunes \\
+\quad \texttt{opening\_evaluator.h} & Evaluador de apertura (mapas de calor) \\
+\quad \texttt{endgame\_evaluator.h} & Evaluador de finales (rey centralizado) \\
+\quad \texttt{node\_move\_optimized.h} & Nodo del arbol + SearchResult + quiescence (legacy) \\
+\quad \texttt{transposition\_table.h} & Tabla de transposicion (4-way set-associative) \\
+\quad \texttt{search.h} & Busqueda on-demand con TT + ID + aspiration windows \\
+\midrule
+\texttt{src/engine/} & Motor de ajedrez \\
+\quad \texttt{alphabeta\_optimized.cpp} & Motor principal (bucle de juego, comandos) \\
+\quad \texttt{node\_move\_optimized.cpp} & Arbol optimizado con alpha-beta + quiescence (legacy) \\
+\quad \texttt{transposition\_table.cpp} & Implementacion de la tabla de transposicion \\
+\quad \texttt{search.cpp} & Busqueda on-demand (TT + ID + quiescence + killers) \\
+\quad \texttt{evaluation/} & Evaluadores heuristicos (general, apertura, final) \\
+\midrule
+\texttt{src/neural/} & Redes neuronales C++ \\
+\quad \texttt{network\_junior.hpp} & Red junior (782$\to$512$\to$512$\to$1) \\
+\quad \texttt{square\_rook\_network.cpp} & Red grande ($\sim$14M parametros) \\
+\quad \texttt{simd\_network\_wip.cpp} & Prototipo SIMD (AVX2, WIP) \\
+\midrule
+\texttt{src/tools/} & Herramientas de datos \\
+\quad \texttt{json\_extractor.cpp} & Extractor de evaluaciones JSONL \\
+\quad \texttt{json\_extractor\_junior.cpp} & Extractor + entrenador inline con perspectiva \\
+\midrule
+\texttt{python/} & Herramientas Python \\
+\quad \texttt{train.py} & Entrenamiento PyTorch (mini-batches, tanh, export binario) \\
+\quad \texttt{model.py} & Analisis de datasets y visualizacion \\
+\quad \texttt{network\_reference.py} & Referencia de red neuronal (Michael Nielsen) \\
+\quad \texttt{mnist\_loader.py} & Cargador MNIST (referencia) \\
+\midrule
+\texttt{test/} & 52 tests automatizados \\
+\texttt{data/dataset.csv} & Dataset de analisis \\
+\texttt{lichess\_db/} & Chunks JSONL de evaluaciones de Lichess \\
+\texttt{third\_party/} & json.hpp, chess.hpp \\
+\texttt{docs/} & Documentacion LaTeX y PDFs \\
+\texttt{LICENSE} & CC BY-NC 4.0 \\
+\bottomrule
+\end{tabularx}
 \end{center}
 
-\section{Chess Engine}
-C++ implementation with Alpha-Beta algorithm using Disservin library.
+% ===========================================================================
+\section{Motor de busqueda}
+% ===========================================================================
 
-\subsection*{Key Components}
+El motor utiliza dos implementaciones de busqueda:
+
+\subsection*{Search (recomendada)}
+Busqueda on-demand con generacion lazy de movimientos. Implementa:
 \begin{itemize}
-    \item {\tt src/engine/alphabeta\_bot.cpp} - Main game loop, UCI input, console display
-    \item {\tt node\_move.cpp/h} - Game tree node with alphaBeta() method
-    \item {\tt general\_evaluator.cpp} - Position evaluation
-    \item {\tt opening\_evaluator.cpp} - Opening heuristics
-    \item {\tt endgame\_evaluator.cpp} - Endgame heuristics
+  \item Profundizacion iterativa con aspiration windows (depth $\geq$ 4)
+  \item Tabla de transposicion 4-way set-associative (16 MB por defecto)
+  \item Quiescence search con stand-pat y MVV-LVA
+  \item Ordenacion: TT move $\to$ capturas MVV-LVA $\to$ promociones $\to$ killers $\to$ history
+  \item Deteccion de jaque mate, ahogado, tablas (50 movimientos, repeticion, material insuficiente)
+  \item Control de tiempo para futura integracion UCI
 \end{itemize}
 
-\section{Connect Four AI}
-Neural network AI for Connect Four. Moved to its own repository: \textbf{connectUPV} (\url{https://github.com/LLPB-pixel/connectUPV}).
+\subsection*{NodeMoveOptimized (legacy)}
+Arbol pre-construido con arena PMR (\texttt{std::pmr::unsynchronized\_pool\_resource}).
+Mismas tecnicas de busqueda pero con el arbol materializado en memoria.
+Util para depuracion y benchmarks.
 
-\section{Neural Networks}
+\subsection*{Tabla de transposicion}
 \begin{itemize}
-    \item {\tt neural\_network/} - Main NN with jsonExtractor
-    \item {\tt neural\_network\_jr/} - Junior version
+  \item Entradas: hash (64 bits) + movimiento + puntuacion + profundidad + flag + edad
+  \item Buckets de 4 entradas (set-associative)
+  \item Flags: \texttt{EXACT}, \texttt{LOWER} (beta-corte), \texttt{UPPER} (fail-low)
+  \item Puntuaciones de mate ajustadas por ply (\texttt{scoreForTT}/\texttt{scoreFromTT})
 \end{itemize}
 
-\section{Technologies}
-C++: Disservin, nlohmann/json, STL. Python: TensorFlow, NumPy, scikit-learn, Jupyter.
+\subsection*{Constantes de busqueda}
+\begin{verbatim}
+MATE_SCORE  = 30000.0f   // Puntuacion de jaque mate
+INFINITY    = 50000.0f   // Infinito de la ventana
+MAX_DEPTH   = 3          // Profundidad maxima (arbol legacy)
+MAX_BRANCH  = 100        // Limite de hijos por nodo (legacy)
+\end{verbatim}
 
-\section{Installation}
-CMake: cmake -S . -B build \&\& cmake --build build
+% ===========================================================================
+\section{Evaluador heuristico}
+% ===========================================================================
 
-Make: make setup \&\& make all
+\subsection*{Escala}
+Todos los valores estan en centipeones:
+\begin{verbatim}
+PAWN_VALUE   = 100    KNIGHT_VALUE = 300    BISHOP_VALUE = 315
+ROOK_VALUE   = 500    QUEEN_VALUE  = 900
+\end{verbatim}
 
-Run: ./bin/alphabeta\_bot (UCI notation: e2e4, etc.)
+\subsection*{Fases del juego}
+La evaluacion detecta la fase por presencia de damas:
+\begin{itemize}
+  \item \textbf{Apertura} (\texttt{OpeningEvaluator}): mapas de calor para piezas menores, rey en esquinas
+  \item \textbf{Final} (\texttt{EndgameEvaluator}): rey centralizado, peones avanzados
+\end{itemize}
 
-Connect Four is no longer part of this repository (see \textbf{connectUPV}).
+\subsection*{Terminos de evaluacion}
+\begin{enumerate}
+  \item \textbf{Material + posicion}: suma de valores base + mapas de calor por pieza
+  \item \textbf{Estructura de peones}: penalti por peones aislados ($-0.5$), doblados ($-0.5$), bonus por pasados ($+1.0$). Comprueba todas las filas hacia adelante.
+  \item \textbf{Seguridad del rey}: fraccion de casillas vecinas al rey bajo control enemigo (0 = seguro, 1 = inseguro)
+  \item \textbf{Control del tablero}: casillas controladas por el color consultado, pesadas por importancia central
+\end{enumerate}
 
-\section{License}
-CC BY-NC 4.0 - \url{https://creativecommons.org/licenses/by-nc/4.0/}
+\subsection*{Perspectiva}
+Todos los terminos devuelven puntuacion en perspectiva del \emph{lado al mueve}
+(convencion negamax). La busqueda niega el signo al subir por el arbol.
 
-Allowed: Share, Adapt, Educational/Personal/Research use.
+% ===========================================================================
+\section{Redes neuronales}
+% ===========================================================================
 
-Not Allowed: Commercial use without permission.
+\subsection*{Red junior (\texttt{network\_junior.hpp})}
+\begin{itemize}
+  \item Arquitectura: $782 \to 512 \to 512 \to 1$
+  \item Inicializacion He: $\text{weights} \sim \mathcal{N}(0, \sqrt{2/N_{in}})$
+  \item Activacion: ReLU (capas ocultas), lineal (salida)
+  \item Perdida: MSE ($\frac{1}{2}(\text{pred} - \text{target})^2$)
+  \item Optimizador: Adam ($\beta_1=0.9$, $\beta_2=0.999$, $\epsilon=10^{-8}$)
+\end{itemize}
 
-\section{Status}
-Completed: Chess engine, Alpha-Beta, evaluation system, victory check.
+\subsection*{Red grande (\texttt{square\_rook\_network.cpp})}
+\begin{itemize}
+  \item Arquitectura: $2565 \to 2048 \to 1536 \to 1024 \to 768 \to 512 \to 256 \to 1$
+  \item $\sim$14 millones de parametros
+  \item Perdida: Huber (con delta=1.0)
+  \item Serializacion a JSON con \texttt{std::async} para paralelismo
+\end{itemize}
 
-In Progress: Advanced NN for chess, move explorer, multi-threading, opening book.
+\subsection*{Encoding de entrada (782 features)}
+\begin{enumerate}
+  \item 768 entradas: 12 tipos de pieza $\times$ 64 casillas (one-hot)
+  \item 4 entradas: derechos de enroque
+  \item 1 entrada: lado al mueve (siempre 1.0, codificado desde nuestra perspectiva)
+  \item 8 entradas: casilla de captura al paso (en passant)
+  \item 1 entrada: reloj de 50 movimientos (normalizado)
+\end{enumerate}
 
-\section{Contributing}
-Llorenc Perez - perezllorenc@gmail.com - \url{https://github.com/LLPB-pixel/ajedrezUPV}
+Cuando mueve negro, el tablero se espeja verticalmente para que ``nuestras''
+piezas siempre avancen ``hacia arriba''. Esto reduce a la mitad los patrones
+que la red debe aprender.
 
-\section{Acknowledgments}
-UPV, Disservin, nlohmann, TensorFlow team, Lichess.
+\subsection*{Entrenamiento PyTorch (\texttt{python/train.py})}
+\begin{itemize}
+  \item Mini-batches de 256 ejemplos
+  \item Funcion objetivo: $\tanh(cp/400) \in [-1, 1]$
+  \item Weight decay ($10^{-4}$) en lugar de dropout
+  \item Seeds fijos para reproducibilidad
+  \item Exportacion a tres formatos: \texttt{.pt} (PyTorch), \texttt{.bin} (binario float32), \texttt{.json}
+\end{itemize}
+
+% ===========================================================================
+\section{Sistema de tests}
+% ===========================================================================
+
+El proyecto incluye 52 tests automatizados organizados en 6 suites:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l c X@{}}
+\toprule
+\textbf{Suite} & \textbf{Tests} & \textbf{Que verifica} \\
+\midrule
+\texttt{test\_node\_move} & 3 & Arbol de nodos, rebuild, alpha-beta con restauracion de tablero \\
+\texttt{test\_search\_benchmark} & 1 & Benchmark de busqueda depth 1-3 \\
+\texttt{test\_json\_extractor} & 3 & Parser de evaluaciones JSONL de Lichess \\
+\texttt{test\_json\_extractor\_junior} & 3 & Conversion FEN a tensor de entrada (782 features) \\
+\texttt{test\_phase2} & 13 & TT, busqueda on-demand, perft, mate-in-1 y mate-in-2 \\
+\texttt{test\_e2e} & 29 & End-to-end: arranque, movimientos, EOF, comandos, reglas de ajedrez \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Tests destacados}
+\begin{itemize}
+  \item \textbf{Perft}: validacion de generacion de movimientos en posiciones conocidas
+        (startpos, kiwipete, position3) con nodos por profundidad exactos
+  \item \textbf{Mate-in-1}: jaque mate por la espalda (Re8\#), jaque mate del erudito (Qxf7\#)
+  \item \textbf{Mate-in-2}: patron de Damiano con busqueda a profundidad 6
+  \item \textbf{EOF critico}: verifica que el motor no entra en bucle infinito al cerrar stdin
+  \item \textbf{Tablero restaurado}: verifica que la busqueda no altera el tablero de entrada
+\end{itemize}
+
+% ===========================================================================
+\section{Compilacion y ejecucion}
+% ===========================================================================
+
+\subsection*{Con Makefile}
+\begin{verbatim}
+make all          # Compila motor + herramientas neuronales
+make engine       # Solo el motor
+make neural       # Solo herramientas neuronales
+make test         # Compila y ejecuta los 52 tests
+make clean        # Limpia binarios
+\end{verbatim}
+
+\subsection*{Con CMake (recomendado)}
+\begin{verbatim}
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+cd build && ctest
+\end{verbatim}
+
+\subsection*{Jugar}
+\begin{verbatim}
+./play.sh                          # Profundidad 3
+./play.sh --depth 5                # Profundidad 5
+./play.sh --fen "FEN"              # Desde una posicion concreta
+./play.sh --build                  # Compilar primero
+./bin/alphabeta_optimized          # Directamente
+\end{verbatim}
+
+\subsection*{Comandos durante la partida}
+\begin{verbatim}
+e2e4        Mover pieza (notacion UCI)
+e7e8q       Promocion de peon
+e8g8        Enroque corto
+d           Mostrar tablero
+fen         Mostrar FEN actual
+undo        Deshacer 2 movimientos (tuyo + del motor)
+new         Nueva partida
+go depth 5  Motor juega con profundidad 5
+quit        Salir
+\end{verbatim}
+
+% ===========================================================================
+\section{Estado del proyecto}
+% ===========================================================================
+
+\subsection*{Completado}
+\begin{itemize}
+  \item Motor con Alpha-Beta + profundizacion iterativa + tabla de transposicion
+  \item Quiescence search + ordenacion de movimientos (TT move, MVV-LVA, killers, history)
+  \item Evaluacion heuristica (material, peones, seguridad rey, control)
+  \item Deteccion correcta de jaque mate, ahogado y tablas
+  \item Interfaz con comandos (quit, undo, new, fen, d, go depth)
+  \item 52 tests automatizados (unitarios, perft, mate-in-N, end-to-end)
+  \item Script \texttt{play.sh} para jugar facilmente
+  \item Redes neuronales C++ (junior y grande) con inicializacion He
+  \item Entrenamiento PyTorch con mini-batches y exportacion binaria
+  \item Perspectiva del lado al mueve en encoding y evaluacion
+\end{itemize}
+
+\subsection*{Pendiente}
+\begin{itemize}
+  \item Podas avanzadas (null-move pruning, LMR, futility)
+  \item NeuralEvaluator integrado como \texttt{Evaluator}
+  \item Protocolo UCI completo
+  \item Multi-hilo (Lazy SMP)
+  \item Libro de aperturas
+  \item Medicion de fuerza con cutechess-cli
+  \item Arquitectura NNUE (acumulador incremental)
+\end{itemize}
+
+% ===========================================================================
+\section{Licencia}
+% ===========================================================================
+
+Este proyecto esta licenciado bajo la
+\href{https://creativecommons.org/licenses/by-nc/4.0/}{Creative Commons
+Attribution-NonCommercial 4.0 International License} (CC BY-NC 4.0).
+
+\begin{itemize}
+  \item \textbf{Permitido}: compartir, adaptar, uso educacional/personal/investigacion
+  \item \textbf{No permitido}: uso comercial sin permiso explicito del autor
+\end{itemize}
+
+% ===========================================================================
+\section{Contacto y agradecimientos}
+% ===========================================================================
+
+\textbf{Autor}: Llorenc Perez --- \texttt{perezllorenc@gmail.com}
+
+\textbf{Repositorio}: \url{https://github.com/LLPB-pixel/ajedrezUPV}
+
+Agradecimientos: UPV, Disservin (chess-library), nlohmann (json), Lichess
+(base de datos de evaluaciones), PyTorch team.
 
 \vfill
 \begin{center}
-\textit{Generated: \today} \\
-\url{https://github.com/LLPB-pixel/ajedrezUPV}
+\textit{Generado: \today}
 \end{center}
 
 \end{document}

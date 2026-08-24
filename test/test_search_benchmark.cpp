@@ -45,15 +45,15 @@ public:
     }
 };
 
-struct SearchResult {
+struct BenchmarkResult {
     float score;
     std::string move;
     double build_milliseconds;
     double search_milliseconds;
 };
 
-SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
-                                       int iterations) {
+BenchmarkResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
+                                          int iterations) {
     chess::Board board = position;
     BenchmarkEvaluator evaluator;
     CoutSilencer silence_output;
@@ -67,22 +67,20 @@ SearchResult measureOptimizedAlphaBeta(const chess::Board& position, int depth,
     root.alphaBeta(&evaluator, chess::Color::WHITE, &board, depth);
 
     const auto start = std::chrono::steady_clock::now();
-    float score = 0.0f;
-    chess::Move best_move;
+    chess::SearchResult result;
     for (int iteration = 0; iteration < iterations; ++iteration) {
-        score = root.alphaBeta(&evaluator, chess::Color::WHITE, &board, depth);
-        best_move = root.getBestMove(score);
+        result = root.alphaBeta(&evaluator, chess::Color::WHITE, &board, depth);
     }
     const auto end = std::chrono::steady_clock::now();
 
     require(board.getFen() == position.getFen(),
             "optimized alpha-beta did not restore the benchmark board");
-    require(root.getChildByMove(best_move) != nullptr,
+    require(root.getChildByMove(result.move) != nullptr,
             "optimized alpha-beta returned an invalid best move");
 
     return {
-        score,
-        chess::uci::moveToUci(best_move),
+        result.score,
+        chess::uci::moveToUci(result.move),
         std::chrono::duration<double, std::milli>(build_end - build_start)
             .count(),
         std::chrono::duration<double, std::milli>(end - start).count()
@@ -95,7 +93,7 @@ void benchmarkOptimizedAlphaBetaAtSeveralDepths() {
 
     std::cout << std::fixed << std::setprecision(3);
     for (const int depth : {1, 2, 3}) {
-        const SearchResult result =
+        const BenchmarkResult result =
             measureOptimizedAlphaBeta(position, depth, iterations);
 
         require(!result.move.empty() && result.move != "0000",

@@ -12,8 +12,10 @@
 #include <chrono>
 
 using json = nlohmann::json;
-// Tamaño de las capas de la red
-constexpr int INPUT_SIZE = 773;
+
+// [N8] Input encoding: 768 (12 piece types × 64 squares) + 4 (castling)
+// + 1 (side to move, always 1.0) + 8 (en passant file) + 1 (halfmove clock) = 782.
+constexpr int INPUT_SIZE = 782;
 constexpr int H1 = 512;
 constexpr int H2 = 512;
 constexpr int OUTPUT_SIZE = 1;
@@ -32,17 +34,24 @@ std::normal_distribution<float> noise_dist(0.0f, NOISE_STDDEV);
 
 inline float relu(float x) { return x > 0.0f ? x : 0.0f; }
 inline float drelu(float x) { return x > 0.0f ? 1.0f : 0.0f; }
-inline bool dropout_mask() { return ((float)rand() / RAND_MAX) > DROPOUT_RATE; }
+// [PERF] Thread-local xorshift — replaces rand()/RAND_MAX which is
+// neither thread-safe nor fast.  One xorshift per dropout decision.
+inline bool dropout_mask() {
+    thread_local uint64_t x = 0x853c49e6748fea9bULL ^ (uint64_t)(uintptr_t)&x;
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    return (x & 0xFF) > (uint64_t)(DROPOUT_RATE * 255.0f);
+}
 
-// Estructura de Adam para cada parámetro
+// [N1] Adam moments initialized to 0 (not 0.01).
 template<int SIZE>
 struct AdamParams {
     float m[SIZE];
     float v[SIZE];
     void init() {
-        #pragma omp parallel for
         for (int i = 0; i < SIZE; ++i) { 
-            m[i] = 0.01f; v[i] = 0.01f; 
+            m[i] = 0.0f; v[i] = 0.0f; 
         }
     }
 };
@@ -59,14 +68,16 @@ struct Layer {
     AdamParams<OUT> bias_adam;
     AdamParams<OUT * IN> weight_adam;
 
+    // [N1] Proper He initialization: sqrt(2/IN), no /10000.
     void init() {
-        #pragma omp parallel for
+        std::mt19937 gen(42); // Fixed seed for reproducibility [N17].
+        std::normal_distribution<float> dist(0.0f, 1.0f);
         for (int i = 0; i < OUT; ++i) {
-            biases[i] = (((float)rand() / RAND_MAX - 0.5f) * 0.1f)/(10000.0f);
+            biases[i] = 0.0f;
             preactivations[i] = 0.0f;
             gradients[i] = 0.0f;
             for (int j = 0; j < IN; ++j) {
-                weights[i][j] = (((float)rand() / RAND_MAX - 0.5f) * std::sqrt(2.0f / IN))/(10000.0f);
+                weights[i][j] = dist(gen) * std::sqrt(2.0f / IN);
             }
         }
         bias_adam.init();
@@ -74,7 +85,7 @@ struct Layer {
     }
 
     void forward(const float* input, bool apply_relu = true, bool apply_dropout = false) {
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
             float sum = biases[i];
             for (int j = 0; j < IN; ++j) {
@@ -100,71 +111,53 @@ struct Layer {
     }
      
     // Método para actualizar pesos y sesgos usando Adam
+    // [PERF] Hoist pow() — one computation per call instead of per weight.
     void update_params(int t, const float* input, const float* gradients_next) {
+        const float bias_c1 = 1.0f / (1.0f - std::pow(BETA1, t));
+        const float bias_c2 = 1.0f / (1.0f - std::pow(BETA2, t));
         // Actualización de sesgos
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
-            // Gradiente para el sesgo
             float grad_bias = gradients[i];
-            
-            // Actualización de los momentos para el sesgo con Adam
             bias_adam.m[i] = BETA1 * bias_adam.m[i] + (1.0f - BETA1) * grad_bias;
             bias_adam.v[i] = BETA2 * bias_adam.v[i] + (1.0f - BETA2) * grad_bias * grad_bias;
-            
-            // Corrección de bias
-            float m_corrected = bias_adam.m[i] / (1.0f - std::pow(BETA1, t));
-            float v_corrected = bias_adam.v[i] / (1.0f - std::pow(BETA2, t));
-            
-            // Actualización del sesgo
+            float m_corrected = bias_adam.m[i] * bias_c1;
+            float v_corrected = bias_adam.v[i] * bias_c2;
             biases[i] -= LEARNING_RATE * m_corrected / (std::sqrt(v_corrected) + EPSILON);
         }
-        
         // Actualización de pesos
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT * IN >= 4096)
         for (int i = 0; i < OUT; ++i) {
             for (int j = 0; j < IN; ++j) {
-                // Gradiente para el peso
                 float grad_weight = gradients[i] * input[j] + 2.0f * L2_REGULARIZATION * weights[i][j];
-                
-                // Índice lineal para el peso en el vector de Adam
                 int idx = i * IN + j;
-                
-                // Actualización de los momentos para el peso con Adam
                 weight_adam.m[idx] = BETA1 * weight_adam.m[idx] + (1.0f - BETA1) * grad_weight;
                 weight_adam.v[idx] = BETA2 * weight_adam.v[idx] + (1.0f - BETA2) * grad_weight * grad_weight;
-                
-                // Corrección de bias
-                float m_corrected = weight_adam.m[idx] / (1.0f - std::pow(BETA1, t));
-                float v_corrected = weight_adam.v[idx] / (1.0f - std::pow(BETA2, t));
-                
-                // Actualización del peso
+                float m_corrected = weight_adam.m[idx] * bias_c1;
+                float v_corrected = weight_adam.v[idx] * bias_c2;
                 weights[i][j] -= LEARNING_RATE * m_corrected / (std::sqrt(v_corrected) + EPSILON);
             }
         }
     }
 
     // Método para la propagación hacia atrás
+    // [PERF] Two-pass without atomics: first compute per-neuron gradients,
+    // then accumulate to grad_input with parallel-for over j (no races).
     void backward(const float* input, const float* grad_output, float* grad_input, bool apply_relu = true) {
-        // Inicializar gradientes de entrada si es necesario
-        if (grad_input) {
-            std::fill(grad_input, grad_input + IN, 0.0f);
-        }
-        
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
-            // Aplicar la derivada de ReLU si es necesario
             float grad = grad_output[i];
-            if (apply_relu) {
-                grad *= drelu(preactivations[i]);
-            }
+            if (apply_relu) grad *= drelu(preactivations[i]);
             gradients[i] = grad;
-            
-            // Propagar el gradiente a la capa anterior
-            if (grad_input) {
-                for (int j = 0; j < IN; ++j) {
-                    #pragma omp atomic
-                    grad_input[j] += grad * weights[i][j];
+        }
+        if (grad_input) {
+            #pragma omp parallel for if(IN >= 128)
+            for (int j = 0; j < IN; ++j) {
+                float sum = 0.0f;
+                for (int i = 0; i < OUT; ++i) {
+                    sum += gradients[i] * weights[i][j];
                 }
+                grad_input[j] = sum;
             }
         }
     }
@@ -189,25 +182,10 @@ struct Network {
         return out.output[0];
     }
 
+    // [N2] Use MSE loss (gradient is simply pred - target, no clipping needed).
     float loss(float pred, float target) {
-        // y la regularización L2 proviene de la suma de los pesos al cuadrado
         float error = pred - target;
-        
-        // Parámetro delta para Huber Loss, puedes ajustarlo según el rango de tus errores
-        const float delta = 1.0f;  // Ajusta este valor según lo que consideres adecuado
-
-        // Huber loss: Si el error es pequeño, usa MSE; si es grande, usa MAE
-        float huber_loss = (std::abs(error) <= delta) ? 0.5f * error * error : delta * (std::abs(error) - 0.5f * delta);
-        if(this->t > 5000){
-            return huber_loss;
-        }
-        auto f1 = std::async(std::launch::async, [&] { return l1.regularization_loss(); });
-        auto f2 = std::async(std::launch::async, [&] { return l2.regularization_loss(); });
-        auto f3 = std::async(std::launch::async, [&] { return out.regularization_loss(); });
-
-        float reg = f1.get() + f2.get() + f3.get();
-        
-        return huber_loss + L2_REGULARIZATION * reg;
+        return 0.5f * error * error;
     }
 
     // Método para entrenar la red con una única muestra

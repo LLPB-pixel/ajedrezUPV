@@ -97,18 +97,16 @@ void optimizedAlphaBetaSearchesAndRestoresBoard() {
     chess::Board alpha_beta_board(chess::constants::STARTPOS);
     CountingEvaluator alpha_beta_evaluator;
 
-    float alpha_beta_score;
-    chess::Move alpha_beta_move;
+    chess::SearchResult result;
 
     {
         CoutSilencer silence_output;
         chess::NodeMoveOptimized::TreeContext context;
         chess::NodeMoveOptimized alpha_beta_root(context, &alpha_beta_board);
-        alpha_beta_score = alpha_beta_root.alphaBeta(
+        result = alpha_beta_root.alphaBeta(
             &alpha_beta_evaluator, chess::Color::WHITE, &alpha_beta_board);
-        alpha_beta_move = alpha_beta_root.getBestMove(alpha_beta_score);
 
-        require(alpha_beta_root.getChildByMove(alpha_beta_move) != nullptr,
+        require(alpha_beta_root.getChildByMove(result.move) != nullptr,
                 "alpha-beta did not return one of the root moves");
     }
 

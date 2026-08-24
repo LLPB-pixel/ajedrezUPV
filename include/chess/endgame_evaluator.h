@@ -3,34 +3,14 @@
 
 #include "chess/general_evaluator.h"
 
+// [PERF] EndgameEvaluator is now a thin phase selector.  All heatmap tables
+// and the shared evaluation flow live in GeneralEvaluator::evaluateCommon,
+// which computes the attack maps once per call instead of ten times.
 class EndgameEvaluator : public GeneralEvaluator {
 public:
     EndgameEvaluator();
     float evaluate(const Board *board, const Color color) override;
-    float positionOfThePiecesAndMaterial(const Board *board) override;
     ~EndgameEvaluator();
-
-private:
-    // Mapas de calor específicos para finales
-    static constexpr float king_endgame_heatmap[8][8] = {
-        {0.0,  0.1,  0.2,  0.3,  0.3,  0.2,  0.1,  0.0},
-        {0.1,  0.2,  0.3,  0.4,  0.4,  0.3,  0.2,  0.1},
-        {0.2,  0.3,  0.4,  0.5,  0.5,  0.4,  0.3,  0.2},
-        {0.3,  0.4,  0.5,  0.6,  0.6,  0.5,  0.4,  0.3},
-        {0.3,  0.4,  0.5,  0.6,  0.6,  0.5,  0.4,  0.3},
-        {0.2,  0.3,  0.4,  0.5,  0.5,  0.4,  0.3,  0.2},
-        {0.1,  0.2,  0.3,  0.4,  0.4,  0.3,  0.2,  0.1},
-        {0.0,  0.1,  0.2,  0.3,  0.3,  0.2,  0.1,  0.0}};
-
-    static constexpr float pawn_endgame_heatmap[8][8] = {
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5},
-        {0.4,  0.4,  0.4,  0.4,  0.4,  0.4,  0.4,  0.4},
-        {0.3,  0.3,  0.3,  0.3,  0.3,  0.3,  0.3,  0.3},
-        {0.2,  0.2,  0.2,  0.2,  0.2,  0.2,  0.2,  0.2},
-        {0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0}};
 };
 
 #endif

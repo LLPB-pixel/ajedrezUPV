@@ -10,6 +10,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# [Q4] Enable strict compiler warnings.
+add_compile_options(-Wall -Wextra)
+
+# [PERF] Native arch + LTO for Release (P2) — 5-15% on chess engines.
+option(AJEDREZ_NATIVE "Build with -march=native" ON)
+if(AJEDREZ_NATIVE)
+  add_compile_options(-march=native)
+endif()
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
+if(ipo_supported)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -24,7 +38,7 @@ include(FetchContent)
 FetchContent_Declare(
   chess-library
   GIT_REPOSITORY https://github.com/Disservin/chess-library
-  GIT_TAG        master
+  GIT_TAG        53e6a84  # pinned for reproducible builds (was: master)
   GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(chess-library)
@@ -49,6 +63,8 @@ target_link_libraries(ajedrez_engine PUBLIC chess_lib OpenMP::OpenMP_CXX)
 # implementation from the engine library.
 add_library(ajedrez_engine_optimized STATIC
   src/engine/node_move_optimized.cpp
+  src/engine/transposition_table.cpp
+  src/engine/search.cpp
 )
 target_include_directories(ajedrez_engine_optimized PUBLIC include third_party src)
 target_link_libraries(ajedrez_engine_optimized PUBLIC ajedrez_engine)
@@ -95,4 +111,14 @@ if(BUILD_TESTING)
   target_include_directories(test_json_extractor_junior PRIVATE include third_party src)
   target_link_libraries(test_json_extractor_junior PRIVATE chess_lib OpenMP::OpenMP_CXX)
   add_test(NAME json_extractor_junior_tests COMMAND test_json_extractor_junior)
+
+  add_executable(test_phase2 test/test_phase2.cpp)
+  target_include_directories(test_phase2 PRIVATE include third_party src)
+  target_link_libraries(test_phase2 PRIVATE ajedrez_engine_optimized)
+  add_test(NAME phase2_tests COMMAND test_phase2)
+
+  add_executable(test_e2e test/test_e2e.cpp)
+  target_include_directories(test_e2e PRIVATE include third_party src)
+  target_link_libraries(test_e2e PRIVATE ajedrez_engine_optimized)
+  add_test(NAME e2e_tests COMMAND test_e2e)
 endif()

@@ -57,8 +57,8 @@ void incompleteEntriesAreIgnored() {
 void fenConversionHasTheExpectedShape() {
     const std::string whiteFen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
     const std::string blackFen = "8/8/8/8/8/8/8/K6k b - - 0 1";
-    float whiteInput[773];
-    float blackInput[773];
+    float whiteInput[NN_INPUT_SIZE];
+    float blackInput[NN_INPUT_SIZE];
 
     convertirFENaInput(whiteFen, whiteInput);
     convertirFENaInput(blackFen, blackInput);
@@ -82,8 +82,8 @@ void fenConversionHasTheExpectedShape() {
         require(blackInput[index] == 0.0f,
                 "absent castling rights are not encoded as zero");
     }
-    require(whiteInput[772] == 1.0f && blackInput[772] == 0.0f,
-            "side to move is not encoded in the final input slot");
+    require(whiteInput[772] == 1.0f && blackInput[772] == 1.0f,
+            "side to move is always 1.0 (encoded from our perspective)");
 
     for (float value : whiteInput) {
         require(std::isfinite(value), "white input contains a non-finite value");

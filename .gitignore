@@ -3,6 +3,7 @@ build/
 bin/
 *.o
 *.obj
+*.d
 
 # Third-party headers fetched at build time
 third_party/chess.hpp
@@ -14,11 +15,17 @@ __pycache__/
 venv/
 *.egg-info/
 
+# Neural network / data artifacts
+*.dt
+redNeuronal.json
+progreso.txt
+
 # LaTeX build artifacts
 docs/*.aux
 docs/*.log
 docs/*.out
 docs/*.toc
+docs/*.synctex.gz
 
 # IDE / OS
 .idea/

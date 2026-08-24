@@ -8,6 +8,8 @@
 #include <sstream>
 #include <cstring>
 #include <cassert>
+#include <limits>
+#include <cmath>
 #include "json.hpp"
 #include "chess.hpp" 
 #include "neural/network_junior.hpp"
@@ -30,6 +32,30 @@ void manejadorInterrupcion(int signal) {
     interrupcionSolicitada = 1;
 }
 
+// [N6] Use tanh(cp/400) as objective: v = tanh(cp/400) ∈ [-1, 1].
+inline float normalizarCP(int cp) {
+    float valor = static_cast<float>(cp) / 400.0f;
+    return std::tanh(valor);
+}
+
+// [N9] Map mate scores to a finite value: mate in N → +(MATE - N), mated in N → -(MATE - N).
+static constexpr float MATE_SCORE = 30000.0f;
+
+float parseEvaluation(const json& eval_entry) {
+    // Try "cp" first.
+    if (eval_entry.contains("cp") && eval_entry["cp"].is_number_integer()) {
+        return static_cast<float>(eval_entry["cp"].get<int>());
+    }
+    // [N9] Try "mate" — map to ±(MATE - |mate|).
+    if (eval_entry.contains("mate") && eval_entry["mate"].is_number_integer()) {
+        int mate = eval_entry["mate"].get<int>();
+        if (mate > 0) return MATE_SCORE - static_cast<float>(mate);
+        if (mate < 0) return -MATE_SCORE - static_cast<float>(mate);
+        return 0.0f;
+    }
+    return std::numeric_limits<float>::quiet_NaN();
+}
+
 void procesarLinea(const std::string& linea, std::vector<Registro>& resultados) {
     json j = json::parse(linea);
 
@@ -48,14 +74,14 @@ void procesarLinea(const std::string& linea, std::vector<Registro>& resultados) 
     }
 
     for (const auto& pv : eval["pvs"]) {
-        if (!pv.is_object() || !pv.contains("cp") ||
-            !pv["cp"].is_number_integer()) {
-            continue;
-        }
+        if (!pv.is_object()) continue;
+        // [N9] Accept both "cp" and "mate" evaluations.
+        float cp = parseEvaluation(pv);
+        if (std::isnan(cp)) continue;
 
         Registro r;
         r.fen = fen;
-        r.cp = pv["cp"];
+        r.cp = static_cast<int>(cp); // Store as int for compatibility.
         resultados.push_back(std::move(r));
     }
 }
@@ -79,56 +105,60 @@ void guardarProgreso(int lineaActual, const std::string& archivoActual, int regi
                    << " - Hora: " << buffer << "\n";
     archivoProgreso.close();
 }
-inline float sigmoidal(float x) {
-    return 1.0f / (1.0f + std::exp(-x));
-}
 
-inline float normalizarCP(int cp) {
-    float valor = static_cast<float>(cp);
-    valor = valor / 100.0f; // Normalizar a un rango entre -1 y 1
-    return sigmoidal(valor); 
-
-}
-
+// [N7] Encode from the perspective of the side to move: when it's black's
+// turn, mirror the board vertically so that "our" pieces always advance
+// upward.  The network learns half the patterns this way.
+// [N8] Added en passant square (+8) and halfmove clock (+1).
+constexpr int NN_INPUT_SIZE = 782;
 
 void convertirFENaInput(const std::string& fen, float* input) {
-    // Inicializar la matriz de entrada con ceros
-    std::memset(input, 0, sizeof(float) * 768);
+    std::memset(input, 0, sizeof(float) * NN_INPUT_SIZE);
 
-    // Crear un objeto Board a partir del FEN
     chess::Board board(fen);
+    const bool flip = (board.sideToMove() == chess::Color::BLACK);
 
-    // Definir los 12 bitboards para las piezas
-    chess::Bitboard bitboards[12] = {
-        board.pieces(chess::PieceType::PAWN, chess::Color::WHITE),
-        board.pieces(chess::PieceType::PAWN, chess::Color::BLACK),
-        board.pieces(chess::PieceType::KNIGHT, chess::Color::WHITE),
-        board.pieces(chess::PieceType::KNIGHT, chess::Color::BLACK),
-        board.pieces(chess::PieceType::BISHOP, chess::Color::WHITE),
-        board.pieces(chess::PieceType::BISHOP, chess::Color::BLACK),
-        board.pieces(chess::PieceType::ROOK, chess::Color::WHITE),
-        board.pieces(chess::PieceType::ROOK, chess::Color::BLACK),
-        board.pieces(chess::PieceType::QUEEN, chess::Color::WHITE),
-        board.pieces(chess::PieceType::QUEEN, chess::Color::BLACK),
-        board.pieces(chess::PieceType::KING, chess::Color::WHITE),
-        board.pieces(chess::PieceType::KING, chess::Color::BLACK)
-    };
-
-    // Convertir los bitboards en la matriz de entrada
+    // [N7] 12 piece planes × 64 squares = 768.
+    // When flip==true, mirror vertically: new_rank = 7 - rank, file stays.
     int index = 0;
-    for (int i = 0; i < 12; ++i) {
-        for (int bit = 0; bit < 64; ++bit) {
-            input[index++] = bitboards[i].check(bit) ? 1.0f : 0.0f;
+    chess::PieceType types[] = {
+        chess::PieceType::PAWN, chess::PieceType::KNIGHT, chess::PieceType::BISHOP,
+        chess::PieceType::ROOK, chess::PieceType::QUEEN, chess::PieceType::KING
+    };
+    for (int pt = 0; pt < 6; ++pt) {
+        for (int color = 0; color < 2; ++color) {
+            chess::Color c = (color == 0) ? chess::Color::WHITE : chess::Color::BLACK;
+            chess::Bitboard bb = board.pieces(types[pt], c);
+            while (bb) {
+                chess::Square sq = bb.pop();
+                int rank = sq.rank();
+                int file = sq.file();
+                if (flip) rank = 7 - rank;
+                input[index + rank * 8 + file] = 1.0f;
+            }
+            index += 64;
         }
     }
 
-    // Handle castling rights
-    auto castlingRights = board.castlingRights();
-    input[index++] = castlingRights.has(chess::Color::WHITE, chess::Board::CastlingRights::Side::KING_SIDE) ? 1.0f : 0.0f;
-    input[index++] = castlingRights.has(chess::Color::WHITE, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
-    input[index++] = castlingRights.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::KING_SIDE) ? 1.0f : 0.0f;
-    input[index++] = castlingRights.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
-    input[index++] = board.sideToMove() == chess::Color::WHITE ? 1.0f : 0.0f;
+    // Castling rights (4 bits) — not flipped, they're absolute.
+    auto cr = board.castlingRights();
+    input[index++] = cr.has(chess::Color::WHITE, chess::Board::CastlingRights::Side::KING_SIDE) ? 1.0f : 0.0f;
+    input[index++] = cr.has(chess::Color::WHITE, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
+    input[index++] = cr.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::KING_SIDE) ? 1.0f : 0.0f;
+    input[index++] = cr.has(chess::Color::BLACK, chess::Board::CastlingRights::Side::QUEEN_SIDE) ? 1.0f : 0.0f;
+
+    // Side to move is always encoded as 1.0 (we always encode from side-to-move perspective).
+    input[index++] = 1.0f;
+
+    // [N8] En passant square: 8 bits for file (or 0 if no en passant).
+    chess::Square ep = board.enpassantSq();
+    if (ep != chess::Square::NO_SQ) {
+        input[index + ep.file()] = 1.0f;
+    }
+    index += 8;
+
+    // [N8] Halfmove clock: single float, normalized.
+    input[index++] = static_cast<float>(board.halfMoveClock()) / 100.0f;
 }
 
 int main() {
@@ -148,14 +178,14 @@ int main() {
         std::cout << "Inicializando nueva red neuronal...\n";
         red->init();
         std::string fen = "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1";
-        float input[773];
-        convertirFENaInput(fen, input);
-        float resultado = red->forward(input);
+        float input_init[NN_INPUT_SIZE];
+        convertirFENaInput(fen, input_init);
+        float resultado = red->forward(input_init);
         std::cout << "Resultado inicial: " << resultado << std::endl;
     }
     
     std::vector<Registro> registros;
-    float* input = new float[773]; // 768 + 5 para los derechos de enroque y el turno
+    float* input = new float[NN_INPUT_SIZE];
     
     // Estadísticas de entrenamiento
     int totalRegistrosProcesados = 0;

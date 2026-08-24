@@ -3,53 +3,14 @@
 
 #include "chess/general_evaluator.h"
 
+// [PERF] OpeningEvaluator is now a thin phase selector.  All heatmap tables
+// and the shared evaluation flow live in GeneralEvaluator::evaluateCommon,
+// which computes the attack maps once per call instead of ten times.
 class OpeningEvaluator : public GeneralEvaluator {
 public:
     OpeningEvaluator();
     float evaluate(const Board *board, const Color color) override;
-    float positionOfThePiecesAndMaterial(const Board *board) override;
     ~OpeningEvaluator();
-    private:
-    // Mapas de calor específicos para apertura
-    static constexpr float white_pawn_heatmap[8][8] = {
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1},
-        {0.3,  0.3,  0.4,  0.5,  0.5,  0.4,  0.3,  0.3},
-        {0.2,  0.2,  0.3,  0.4,  0.4,  0.3,  0.2,  0.2},
-        {0.1,  0.1,  0.2,  0.3,  0.3,  0.2,  0.1,  0.1},
-        {0.05, 0.05, 0.1,  0.1,  0.1,  0.1,  0.05, 0.05},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0}};
-
-    static constexpr float black_pawn_heatmap[8][8] = {
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.05, 0.05, 0.1,  0.1,  0.1,  0.1,  0.05, 0.05},
-        {0.1,  0.1,  0.2,  0.3,  0.3,  0.2,  0.1,  0.1},
-        {0.2,  0.2,  0.3,  0.4,  0.4,  0.3,  0.2,  0.2},
-        {0.3,  0.3,  0.4,  0.5,  0.5,  0.4,  0.3,  0.3},
-        {0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0}};
-
-    static constexpr float minor_pieces_heatmap[8][8] = {
-        {0.0,  0.0,  0.1,  0.1,  0.1,  0.1,  0.0,  0.0},
-        {0.0,  0.2,  0.3,  0.3,  0.3,  0.3,  0.2,  0.0},
-        {0.1,  0.3,  0.5,  0.6,  0.6,  0.5,  0.3,  0.1},
-        {0.1,  0.3,  0.6,  0.7,  0.7,  0.6,  0.3,  0.1},
-        {0.1,  0.3,  0.6,  0.7,  0.7,  0.6,  0.3,  0.1},
-        {0.1,  0.3,  0.5,  0.6,  0.6,  0.5,  0.3,  0.1},
-        {0.0,  0.2,  0.3,  0.3,  0.3,  0.3,  0.2,  0.0},
-        {0.0,  0.0,  0.1,  0.1,  0.1,  0.1,  0.0,  0.0}};
-
-    static constexpr float king_safety_heatmap[8][8] = {
-        {1,  1,  1,  0.0,  0.0, 0.0,  1,  1},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0},
-        {1,  1,  1,  0.0, 0.0,  0.0,  1,  1}};
 };
 
 #endif

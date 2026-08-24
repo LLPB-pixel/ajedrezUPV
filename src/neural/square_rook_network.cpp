@@ -37,7 +37,13 @@ std::normal_distribution<float> noise_dist(0.0f, NOISE_STDDEV);
 
 inline float relu(float x) { return x > 0.0f ? x : 0.0f; }
 inline float drelu(float x) { return x > 0.0f ? 1.0f : 0.0f; }
-inline bool dropout_mask() { return ((float)rand() / RAND_MAX) > DROPOUT_RATE; }
+inline bool dropout_mask() {
+    thread_local uint64_t x = 0x853c49e6748fea9bULL ^ (uint64_t)(uintptr_t)&x;
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    return (x & 0xFF) > (uint64_t)(DROPOUT_RATE * 255.0f);
+}
 
 // Estructura de Adam para cada parámetro
 template<int SIZE>
@@ -79,7 +85,7 @@ struct Layer {
     }
 
     void forward(const float* input, bool apply_relu = true, bool apply_dropout = false) {
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
             float sum = biases[i];
             for (int j = 0; j < IN; ++j) {
@@ -106,8 +112,10 @@ struct Layer {
      
     // Método para actualizar pesos y sesgos usando Adam
     void update_params(int t, const float* input, const float* gradients_next) {
+        const float bias_c1 = 1.0f / (1.0f - std::pow(BETA1, t));
+        const float bias_c2 = 1.0f / (1.0f - std::pow(BETA2, t));
         // Actualización de sesgos
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
             // Gradiente para el sesgo
             float grad_bias = gradients[i];
@@ -117,15 +125,15 @@ struct Layer {
             bias_adam.v[i] = BETA2 * bias_adam.v[i] + (1.0f - BETA2) * grad_bias * grad_bias;
             
             // Corrección de bias
-            float m_corrected = bias_adam.m[i] / (1.0f - std::pow(BETA1, t));
-            float v_corrected = bias_adam.v[i] / (1.0f - std::pow(BETA2, t));
+            float m_corrected = bias_adam.m[i] * bias_c1;
+            float v_corrected = bias_adam.v[i] * bias_c2;
             
             // Actualización del sesgo
             biases[i] -= LEARNING_RATE * m_corrected / (std::sqrt(v_corrected) + EPSILON);
         }
         
         // Actualización de pesos
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT * IN >= 4096)
         for (int i = 0; i < OUT; ++i) {
             for (int j = 0; j < IN; ++j) {
                 // Gradiente para el peso
@@ -139,8 +147,8 @@ struct Layer {
                 weight_adam.v[idx] = BETA2 * weight_adam.v[idx] + (1.0f - BETA2) * grad_weight * grad_weight;
                 
                 // Corrección de bias
-                float m_corrected = weight_adam.m[idx] / (1.0f - std::pow(BETA1, t));
-                float v_corrected = weight_adam.v[idx] / (1.0f - std::pow(BETA2, t));
+                float m_corrected = weight_adam.m[idx] * bias_c1;
+                float v_corrected = weight_adam.v[idx] * bias_c2;
                 
                 // Actualización del peso
                 weights[i][j] -= LEARNING_RATE * m_corrected / (std::sqrt(v_corrected) + EPSILON);
@@ -149,27 +157,20 @@ struct Layer {
     }
 
     // Método para la propagación hacia atrás
+    // [PERF] Two-pass without atomics.
     void backward(const float* input, const float* grad_output, float* grad_input, bool apply_relu = true) {
-        // Inicializar gradientes de entrada si es necesario
-        if (grad_input) {
-            std::fill(grad_input, grad_input + IN, 0.0f);
-        }
-        
-        #pragma omp parallel for
+        #pragma omp parallel for if(OUT >= 128)
         for (int i = 0; i < OUT; ++i) {
-            // Aplicar la derivada de ReLU si es necesario
             float grad = grad_output[i];
-            if (apply_relu) {
-                grad *= drelu(preactivations[i]);
-            }
+            if (apply_relu) grad *= drelu(preactivations[i]);
             gradients[i] = grad;
-            
-            // Propagar el gradiente a la capa anterior
-            if (grad_input) {
-                for (int j = 0; j < IN; ++j) {
-                    #pragma omp atomic
-                    grad_input[j] += grad * weights[i][j];
-                }
+        }
+        if (grad_input) {
+            #pragma omp parallel for if(IN >= 128)
+            for (int j = 0; j < IN; ++j) {
+                float sum = 0.0f;
+                for (int i = 0; i < OUT; ++i) sum += gradients[i] * weights[i][j];
+                grad_input[j] = sum;
             }
         }
     }
